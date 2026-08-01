@@ -5,6 +5,8 @@ import 'package:brothers_coffee_pos/domain/entities/catalog.dart';
 import 'package:brothers_coffee_pos/domain/entities/enums.dart';
 import 'package:brothers_coffee_pos/domain/repositories/account_repository.dart';
 import 'package:brothers_coffee_pos/domain/repositories/catalog_repositories.dart';
+import 'package:brothers_coffee_pos/domain/entities/sale.dart';
+import 'package:brothers_coffee_pos/domain/repositories/sale_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -14,6 +16,7 @@ void main() {
         accounts: FakeAccounts(),
         categories: FakeCategories(),
         products: FakeProducts(),
+        sales: FakeSales(),
       ),
     );
     await tester.pumpAndSettle();
@@ -103,4 +106,25 @@ class FakeProducts implements ProductRepository {
     Money? price,
     String? imageRef,
   }) => throw UnimplementedError();
+}
+
+class FakeSales implements SaleRepository {
+  @override
+  Future<SaleRecord> cancelSale({
+    required String managerAccountId,
+    required String saleId,
+    required String reason,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<SaleRecord> confirmCashSale({
+    required String accountId,
+    required List<SaleDraftLine> lines,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<List<SaleRecord>> listForBusinessDate({
+    required String managerAccountId,
+    required String businessDate,
+  }) async => const [];
 }

@@ -4,6 +4,7 @@ import 'app/app.dart';
 import 'data/database/app_database.dart';
 import 'data/repositories/drift_account_repository.dart';
 import 'data/repositories/drift_catalog_repositories.dart';
+import 'data/repositories/drift_sale_repository.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,6 +14,7 @@ void main() {
       accounts: DriftAccountRepository(database),
       categories: DriftCategoryRepository(database),
       products: DriftProductRepository(database),
+      sales: DriftSaleRepository(database),
     ),
   );
 }

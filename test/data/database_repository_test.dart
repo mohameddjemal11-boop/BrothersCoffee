@@ -14,7 +14,7 @@ void main() {
   tearDown(() => database.close());
 
   test(
-    'version 1 schema creates metadata and enforces a single open day',
+    'version 2 schema creates metadata and enforces a single open day',
     () async {
       final accounts = DriftAccountRepository(database);
       final manager = await accounts.bootstrapManager(
@@ -23,10 +23,10 @@ void main() {
       );
       final now = DateTime.now().toUtc();
 
-      expect(database.schemaVersion, 1);
+      expect(database.schemaVersion, 2);
       expect(
         (await database.select(database.appMetadata).getSingle()).value,
-        '1',
+        '2',
       );
 
       await database

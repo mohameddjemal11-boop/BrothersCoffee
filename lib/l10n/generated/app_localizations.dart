@@ -355,6 +355,120 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Saisissez un prix valide en TND.'**
   String get invalidPrice;
+
+  /// No description provided for @saleConfirmedTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vente confirmée'**
+  String get saleConfirmedTitle;
+
+  /// No description provided for @saleNumber.
+  ///
+  /// In fr, this message translates to:
+  /// **'Numéro de vente'**
+  String get saleNumber;
+
+  /// No description provided for @close.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fermer'**
+  String get close;
+
+  /// No description provided for @saleConfirmationError.
+  ///
+  /// In fr, this message translates to:
+  /// **'La vente n’a pas pu être enregistrée.'**
+  String get saleConfirmationError;
+
+  /// No description provided for @previousDayOpenError.
+  ///
+  /// In fr, this message translates to:
+  /// **'La journée précédente doit être clôturée avant de continuer.'**
+  String get previousDayOpenError;
+
+  /// No description provided for @unavailableProductError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un produit de la commande n’est plus disponible.'**
+  String get unavailableProductError;
+
+  /// No description provided for @salesHistory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Historique des ventes'**
+  String get salesHistory;
+
+  /// No description provided for @noSalesToday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune vente enregistrée aujourd’hui.'**
+  String get noSalesToday;
+
+  /// No description provided for @confirmedStatus.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmée'**
+  String get confirmedStatus;
+
+  /// No description provided for @cancelledStatus.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annulée'**
+  String get cancelledStatus;
+
+  /// No description provided for @soldBy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrée par'**
+  String get soldBy;
+
+  /// No description provided for @saleDetails.
+  ///
+  /// In fr, this message translates to:
+  /// **'Détails de la vente'**
+  String get saleDetails;
+
+  /// No description provided for @cancelSale.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler la vente'**
+  String get cancelSale;
+
+  /// No description provided for @cancellationReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif de l’annulation'**
+  String get cancellationReason;
+
+  /// No description provided for @reasonRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le motif est obligatoire.'**
+  String get reasonRequired;
+
+  /// No description provided for @confirmCancellation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer l’annulation'**
+  String get confirmCancellation;
+
+  /// No description provided for @cancellationFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'L’annulation a échoué.'**
+  String get cancellationFailed;
+
+  /// No description provided for @historyLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger l’historique.'**
+  String get historyLoadError;
+
+  /// No description provided for @processing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrement…'**
+  String get processing;
 }
 
 class _AppLocalizationsDelegate

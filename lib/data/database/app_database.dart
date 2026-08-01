@@ -25,7 +25,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.defaults() : super(driftDatabase(name: 'brothers_coffee'));
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -71,6 +71,7 @@ class AppDatabase extends _$AppDatabase {
           AND sales.status IN ('confirmed', 'cancelled'))
         BEGIN SELECT RAISE(ABORT, 'final sale lines are immutable'); END
       ''');
+      await _createFinalSaleLineInsertTrigger();
       await into(appMetadata).insert(
         AppMetadataCompanion.insert(
           key: 'schema_version',
@@ -79,8 +80,29 @@ class AppDatabase extends _$AppDatabase {
         ),
       );
     },
+    onUpgrade: (migrator, from, to) async {
+      if (from < 2) {
+        await _createFinalSaleLineInsertTrigger();
+        await (update(
+          appMetadata,
+        )..where((row) => row.key.equals('schema_version'))).write(
+          AppMetadataCompanion(
+            value: Value(schemaVersion.toString()),
+            updatedAt: Value(DateTime.now().toUtc()),
+          ),
+        );
+      }
+    },
     beforeOpen: (_) async {
       await customStatement('PRAGMA foreign_keys = ON');
     },
   );
+
+  Future<void> _createFinalSaleLineInsertTrigger() => customStatement('''
+    CREATE TRIGGER immutable_final_sale_line_insert
+    BEFORE INSERT ON sale_lines
+    WHEN EXISTS (SELECT 1 FROM sales WHERE sales.id = NEW.sale_id
+      AND sales.status IN ('confirmed', 'cancelled'))
+    BEGIN SELECT RAISE(ABORT, 'final sale lines are immutable'); END
+  ''');
 }

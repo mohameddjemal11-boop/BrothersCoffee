@@ -136,4 +136,61 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get invalidPrice => 'أدخل سعرًا صالحًا بالدينار.';
+
+  @override
+  String get saleConfirmedTitle => 'تم تأكيد البيع';
+
+  @override
+  String get saleNumber => 'رقم البيع';
+
+  @override
+  String get close => 'إغلاق';
+
+  @override
+  String get saleConfirmationError => 'تعذر تسجيل عملية البيع.';
+
+  @override
+  String get previousDayOpenError => 'يجب إغلاق اليوم السابق قبل المتابعة.';
+
+  @override
+  String get unavailableProductError => 'أحد منتجات الطلب لم يعد متاحًا.';
+
+  @override
+  String get salesHistory => 'سجل المبيعات';
+
+  @override
+  String get noSalesToday => 'لا توجد مبيعات مسجلة اليوم.';
+
+  @override
+  String get confirmedStatus => 'مؤكدة';
+
+  @override
+  String get cancelledStatus => 'ملغاة';
+
+  @override
+  String get soldBy => 'سجلها';
+
+  @override
+  String get saleDetails => 'تفاصيل البيع';
+
+  @override
+  String get cancelSale => 'إلغاء البيع';
+
+  @override
+  String get cancellationReason => 'سبب الإلغاء';
+
+  @override
+  String get reasonRequired => 'السبب مطلوب.';
+
+  @override
+  String get confirmCancellation => 'تأكيد الإلغاء';
+
+  @override
+  String get cancellationFailed => 'تعذر إلغاء البيع.';
+
+  @override
+  String get historyLoadError => 'تعذر تحميل سجل المبيعات.';
+
+  @override
+  String get processing => 'جارٍ التسجيل…';
 }

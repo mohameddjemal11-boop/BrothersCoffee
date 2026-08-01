@@ -139,4 +139,63 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get invalidPrice => 'Saisissez un prix valide en TND.';
+
+  @override
+  String get saleConfirmedTitle => 'Vente confirmée';
+
+  @override
+  String get saleNumber => 'Numéro de vente';
+
+  @override
+  String get close => 'Fermer';
+
+  @override
+  String get saleConfirmationError => 'La vente n’a pas pu être enregistrée.';
+
+  @override
+  String get previousDayOpenError =>
+      'La journée précédente doit être clôturée avant de continuer.';
+
+  @override
+  String get unavailableProductError =>
+      'Un produit de la commande n’est plus disponible.';
+
+  @override
+  String get salesHistory => 'Historique des ventes';
+
+  @override
+  String get noSalesToday => 'Aucune vente enregistrée aujourd’hui.';
+
+  @override
+  String get confirmedStatus => 'Confirmée';
+
+  @override
+  String get cancelledStatus => 'Annulée';
+
+  @override
+  String get soldBy => 'Enregistrée par';
+
+  @override
+  String get saleDetails => 'Détails de la vente';
+
+  @override
+  String get cancelSale => 'Annuler la vente';
+
+  @override
+  String get cancellationReason => 'Motif de l’annulation';
+
+  @override
+  String get reasonRequired => 'Le motif est obligatoire.';
+
+  @override
+  String get confirmCancellation => 'Confirmer l’annulation';
+
+  @override
+  String get cancellationFailed => 'L’annulation a échoué.';
+
+  @override
+  String get historyLoadError => 'Impossible de charger l’historique.';
+
+  @override
+  String get processing => 'Enregistrement…';
 }
