@@ -697,6 +697,78 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'millimes'**
   String get millimesUnit;
+
+  /// No description provided for @accountManagement.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gestion des comptes'**
+  String get accountManagement;
+
+  /// No description provided for @addEmployee.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un employé'**
+  String get addEmployee;
+
+  /// No description provided for @managerRole.
+  ///
+  /// In fr, this message translates to:
+  /// **'Responsable'**
+  String get managerRole;
+
+  /// No description provided for @employeeRole.
+  ///
+  /// In fr, this message translates to:
+  /// **'Employé'**
+  String get employeeRole;
+
+  /// No description provided for @editAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier le compte'**
+  String get editAccount;
+
+  /// No description provided for @newPinOptional.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau PIN (facultatif)'**
+  String get newPinOptional;
+
+  /// No description provided for @archiveAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Archiver le compte'**
+  String get archiveAccount;
+
+  /// No description provided for @archiveAccountQuestion.
+  ///
+  /// In fr, this message translates to:
+  /// **'Archiver le compte de {name} ?'**
+  String archiveAccountQuestion(String name);
+
+  /// No description provided for @accountSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le compte a été enregistré.'**
+  String get accountSaved;
+
+  /// No description provided for @accountArchived.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le compte a été archivé.'**
+  String get accountArchived;
+
+  /// No description provided for @accountActionFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'L’opération sur le compte a échoué.'**
+  String get accountActionFailed;
+
+  /// No description provided for @accountLoadFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger les comptes.'**
+  String get accountLoadFailed;
 }
 
 class _AppLocalizationsDelegate

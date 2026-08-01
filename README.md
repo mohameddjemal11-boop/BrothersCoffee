@@ -14,6 +14,7 @@ Offline-first Android point-of-sale application for a single coffee shop and tab
 - Manager sales history, sale details, and audited cancellation with a required reason
 - Employee/manager day closing with optional cash count and exact variance
 - Manager-only audited reopening and inclusive daily/date-range reporting
+- Manager-authorized employee account creation, PIN rotation, and archival with audit events
 - Responsive point-of-sale shell with French and Arabic resources
 
 The agreed product scope is in [Product requirements](docs/PRODUCT_REQUIREMENTS.md), and the technical boundaries are in [Architecture](docs/ARCHITECTURE.md).

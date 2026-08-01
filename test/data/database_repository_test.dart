@@ -2,7 +2,7 @@ import 'package:brothers_coffee_pos/core/money.dart';
 import 'package:brothers_coffee_pos/data/database/app_database.dart';
 import 'package:brothers_coffee_pos/data/repositories/drift_account_repository.dart';
 import 'package:brothers_coffee_pos/data/repositories/drift_catalog_repositories.dart';
-import 'package:brothers_coffee_pos/domain/entities/enums.dart';
+import 'package:brothers_coffee_pos/domain/entities/account.dart';
 import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -78,14 +78,12 @@ void main() {
       expect(await repository.authenticate(first.id, '1234'), isNotNull);
       expect(await repository.authenticate(first.id, '9999'), isNull);
       await expectLater(
-        repository.create(
-          displayName: 'Second manager',
-          role: AccountRole.manager,
-          pin: '5678',
+        repository.archiveEmployee(
+          managerAccountId: first.id,
+          accountId: first.id,
         ),
-        throwsStateError,
+        throwsA(isA<AccountFailure>()),
       );
-      await expectLater(repository.archive(first.id), throwsStateError);
     },
   );
 

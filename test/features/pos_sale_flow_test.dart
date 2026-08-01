@@ -9,6 +9,7 @@ import 'package:brothers_coffee_pos/domain/entities/enums.dart';
 import 'package:brothers_coffee_pos/domain/entities/sale.dart';
 import 'package:brothers_coffee_pos/domain/entities/report.dart';
 import 'package:brothers_coffee_pos/domain/repositories/business_day_repository.dart';
+import 'package:brothers_coffee_pos/domain/repositories/account_administration_repository.dart';
 import 'package:brothers_coffee_pos/domain/repositories/catalog_repositories.dart';
 import 'package:brothers_coffee_pos/domain/repositories/sale_repository.dart';
 import 'package:brothers_coffee_pos/domain/repositories/report_repository.dart';
@@ -63,6 +64,7 @@ void main() {
             updatedAt: now,
             revision: 1,
           ),
+          accountAdministration: _AccountAdministration(),
           categories: _Categories(category),
           products: _Products(product),
           sales: sales,
@@ -73,6 +75,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+
+    expect(find.byTooltip('Gestion des comptes'), findsNothing);
 
     await tester.tap(find.text('Espresso').first);
     await tester.pump();
@@ -111,6 +115,64 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Touchez un produit pour l’ajouter'), findsOneWidget);
   });
+  testWidgets('empty POS fits a compact portrait phone', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(360, 720));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(_emptyManagerPos());
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Brothers Coffee'), findsOneWidget);
+    expect(find.byIcon(Icons.more_vert), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    expect(find.text('Changer d’utilisateur'), findsOneWidget);
+    expect(find.text('Clôturer la journée'), findsOneWidget);
+    expect(find.text('Gestion des comptes'), findsOneWidget);
+  });
+
+  testWidgets('empty POS fits a short landscape phone', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1000, 480));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(_emptyManagerPos());
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Brothers Coffee'), findsOneWidget);
+    expect(find.text('Le catalogue est vide'), findsOneWidget);
+  });
+}
+
+Widget _emptyManagerPos() {
+  final now = DateTime(2026, 8, 1, 17);
+  final businessDays = _BusinessDays();
+  return MaterialApp(
+    locale: const Locale('fr'),
+    theme: AppTheme.light,
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: PosShellScreen(
+      account: Account(
+        id: 'manager',
+        displayName: 'Jamoul',
+        role: AccountRole.manager,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+        revision: 1,
+      ),
+      accountAdministration: _AccountAdministration(),
+      categories: _EmptyCategories(),
+      products: _EmptyProducts(),
+      sales: _RecordingSales(),
+      businessDays: businessDays,
+      reports: businessDays,
+      onSwitchUser: () {},
+    ),
+  );
 }
 
 class _BusinessDays implements BusinessDayRepository, ReportRepository {
@@ -136,6 +198,34 @@ class _BusinessDays implements BusinessDayRepository, ReportRepository {
     required String managerAccountId,
     required String startDate,
     required String endDate,
+  }) => throw UnimplementedError();
+}
+
+class _AccountAdministration implements AccountAdministrationRepository {
+  @override
+  Future<void> archiveEmployee({
+    required String managerAccountId,
+    required String accountId,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<Account> createEmployee({
+    required String managerAccountId,
+    required String displayName,
+    required String pin,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<List<Account>> listForManagement({
+    required String managerAccountId,
+  }) async => const [];
+
+  @override
+  Future<Account> updateAccount({
+    required String managerAccountId,
+    required String accountId,
+    String? displayName,
+    String? pin,
   }) => throw UnimplementedError();
 }
 
@@ -198,6 +288,51 @@ class _Products implements ProductRepository {
 
   @override
   Future<List<Product>> listActive({String? categoryId}) async => [product];
+
+  @override
+  Future<void> archive(String id) => throw UnimplementedError();
+  @override
+  Future<Product> create({
+    required String categoryId,
+    required String name,
+    required Money price,
+    String? imageRef,
+  }) => throw UnimplementedError();
+  @override
+  Future<void> reorder(String categoryId, List<String> orderedIds) =>
+      throw UnimplementedError();
+  @override
+  Future<Product> update({
+    required String id,
+    String? categoryId,
+    String? name,
+    Money? price,
+    String? imageRef,
+  }) => throw UnimplementedError();
+}
+
+class _EmptyCategories implements CategoryRepository {
+  @override
+  Future<List<Category>> listActive() async => const [];
+
+  @override
+  Future<void> archive(String id) => throw UnimplementedError();
+  @override
+  Future<Category> create({required String name, String? imageRef}) =>
+      throw UnimplementedError();
+  @override
+  Future<void> reorder(List<String> orderedIds) => throw UnimplementedError();
+  @override
+  Future<Category> update({
+    required String id,
+    String? name,
+    String? imageRef,
+  }) => throw UnimplementedError();
+}
+
+class _EmptyProducts implements ProductRepository {
+  @override
+  Future<List<Product>> listActive({String? categoryId}) async => const [];
 
   @override
   Future<void> archive(String id) => throw UnimplementedError();

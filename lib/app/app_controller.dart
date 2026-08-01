@@ -59,8 +59,9 @@ class AppController extends ChangeNotifier {
 
   void switchUser() {
     activeAccount = null;
-    phase = AppPhase.signIn;
+    phase = AppPhase.loading;
     error = null;
     notifyListeners();
+    load();
   }
 }

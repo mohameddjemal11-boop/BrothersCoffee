@@ -320,4 +320,42 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get millimesUnit => 'millimes';
+
+  @override
+  String get accountManagement => 'Gestion des comptes';
+
+  @override
+  String get addEmployee => 'Ajouter un employé';
+
+  @override
+  String get managerRole => 'Responsable';
+
+  @override
+  String get employeeRole => 'Employé';
+
+  @override
+  String get editAccount => 'Modifier le compte';
+
+  @override
+  String get newPinOptional => 'Nouveau PIN (facultatif)';
+
+  @override
+  String get archiveAccount => 'Archiver le compte';
+
+  @override
+  String archiveAccountQuestion(String name) {
+    return 'Archiver le compte de $name ?';
+  }
+
+  @override
+  String get accountSaved => 'Le compte a été enregistré.';
+
+  @override
+  String get accountArchived => 'Le compte a été archivé.';
+
+  @override
+  String get accountActionFailed => 'L’opération sur le compte a échoué.';
+
+  @override
+  String get accountLoadFailed => 'Impossible de charger les comptes.';
 }

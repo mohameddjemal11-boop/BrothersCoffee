@@ -102,5 +102,18 @@
   "@quantityValue": {"placeholders": {"quantity": {"type": "int"}}},
   "unknownLabel": "غير محدد",
   "businessDayClosedError": "يوم العمل مغلق. يجب على المسؤول إعادة فتحه قبل تسجيل بيع جديد.",
-  "millimesUnit": "مليم"
+  "millimesUnit": "مليم",
+  "accountManagement": "إدارة الحسابات",
+  "addEmployee": "إضافة موظف",
+  "managerRole": "مسؤول",
+  "employeeRole": "موظف",
+  "editAccount": "تعديل الحساب",
+  "newPinOptional": "رمز PIN جديد (اختياري)",
+  "archiveAccount": "أرشفة الحساب",
+  "archiveAccountQuestion": "هل تريد أرشفة حساب {name}؟",
+  "@archiveAccountQuestion": {"placeholders": {"name": {"type": "String"}}},
+  "accountSaved": "تم حفظ الحساب.",
+  "accountArchived": "تمت أرشفة الحساب.",
+  "accountActionFailed": "تعذرت عملية الحساب.",
+  "accountLoadFailed": "تعذر تحميل الحسابات."
 }
