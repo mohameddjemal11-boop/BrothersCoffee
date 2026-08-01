@@ -16,6 +16,9 @@ void main() {
   late domain.Account manager;
   late domain.Account employee;
   late domain.Product espresso;
+  late domain.Category coffeeCategory;
+  late DriftCategoryRepository categories;
+  late DriftProductRepository products;
   late DriftSaleRepository sales;
   late DriftBusinessDayRepository businessDays;
   var idCounter = 0;
@@ -25,8 +28,8 @@ void main() {
   setUp(() async {
     database = AppDatabase(NativeDatabase.memory());
     final accounts = DriftAccountRepository(database);
-    final categories = DriftCategoryRepository(database);
-    final products = DriftProductRepository(database);
+    categories = DriftCategoryRepository(database);
+    products = DriftProductRepository(database);
     manager = await accounts.bootstrapManager(
       displayName: 'Responsable',
       pin: '1234',
@@ -36,9 +39,9 @@ void main() {
       displayName: 'Serveur',
       pin: '5678',
     );
-    final category = await categories.create(name: 'Cafés');
+    coffeeCategory = await categories.create(name: 'Cafés');
     espresso = await products.create(
-      categoryId: category.id,
+      categoryId: coffeeCategory.id,
       name: 'Espresso',
       price: const Money(2500),
     );
@@ -94,6 +97,33 @@ void main() {
         ),
         throwsA(_saleFailure(SaleFailureCode.businessDayClosed)),
       );
+    },
+  );
+
+  test(
+    'report uses current catalogue labels across renamed sale snapshots',
+    () async {
+      await sales.confirmCashSale(
+        accountId: employee.id,
+        lines: [SaleDraftLine(productId: espresso.id, quantity: 1)],
+      );
+      await products.update(id: espresso.id, name: 'Double Espresso');
+      await categories.update(id: coffeeCategory.id, name: 'Boissons chaudes');
+      await sales.confirmCashSale(
+        accountId: employee.id,
+        lines: [SaleDraftLine(productId: espresso.id, quantity: 2)],
+      );
+
+      final report = await businessDays.buildSalesReport(
+        managerAccountId: manager.id,
+        startDate: '2026-08-01',
+        endDate: '2026-08-01',
+      );
+
+      expect(report.products.single.label, 'Double Espresso');
+      expect(report.products.single.quantity, 3);
+      expect(report.categories.single.label, 'Boissons chaudes');
+      expect(report.categories.single.quantity, 3);
     },
   );
 
