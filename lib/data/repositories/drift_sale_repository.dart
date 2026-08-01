@@ -40,13 +40,13 @@ class DriftSaleRepository implements SaleRepository {
         nowUtc: nowUtc,
       );
       final productRows = await _loadProducts(lines);
-      final categoryRows = await (_database.select(
-        _database.categories,
-      )..where(
-        (row) => row.id.isIn(
-          productRows.values.map((product) => product.categoryId),
-        ),
-      )).get();
+      final categoryRows =
+          await (_database.select(_database.categories)..where(
+                (row) => row.id.isIn(
+                  productRows.values.map((product) => product.categoryId),
+                ),
+              ))
+              .get();
       final categoriesById = {
         for (final category in categoryRows) category.id: category,
       };
@@ -245,21 +245,27 @@ class DriftSaleRepository implements SaleRepository {
             .getSingleOrNull();
     if (openDay != null) {
       if (openDay.businessDate != businessDate) {
-        throw domain.SaleFailure(
-          domain.SaleFailureCode.previousBusinessDayOpen,
-          openDay.businessDate,
+        if (openDay.businessDate.compareTo(businessDate) > 0) {
+          throw domain.SaleFailure(
+            domain.SaleFailureCode.previousBusinessDayOpen,
+            openDay.businessDate,
+          );
+        }
+        await _closeForAutomaticRollover(
+          day: openDay,
+          accountId: accountId,
+          nowUtc: nowUtc,
         );
+      } else {
+        return openDay;
       }
-      return openDay;
     }
 
     final existingDay = await (_database.select(
       _database.businessDays,
     )..where((row) => row.businessDate.equals(businessDate))).getSingleOrNull();
     if (existingDay != null) {
-      throw const domain.SaleFailure(
-        domain.SaleFailureCode.businessDayClosed,
-      );
+      throw const domain.SaleFailure(domain.SaleFailureCode.businessDayClosed);
     }
 
     final dayId = _newId();
@@ -290,6 +296,61 @@ class DriftSaleRepository implements SaleRepository {
     return (_database.select(
       _database.businessDays,
     )..where((row) => row.id.equals(dayId))).getSingle();
+  }
+
+  Future<void> _closeForAutomaticRollover({
+    required BusinessDay day,
+    required String accountId,
+    required DateTime nowUtc,
+  }) async {
+    final expectedCash = await _expectedCashForDay(day.id);
+    final details = <String, Object>{
+      'automaticRollover': true,
+      'expectedCashMillimes': expectedCash.millimes,
+    };
+    await (_database.update(
+      _database.businessDays,
+    )..where((row) => row.id.equals(day.id))).write(
+      BusinessDaysCompanion(
+        status: Value(BusinessDayStatus.closed.name),
+        closedAt: Value(nowUtc),
+        closedByAccountId: Value(accountId),
+        expectedCashMillimes: Value(expectedCash.millimes),
+        countedCashMillimes: const Value(null),
+        varianceMillimes: const Value(null),
+        updatedAt: Value(nowUtc),
+        revision: Value(day.revision + 1),
+      ),
+    );
+    await _database
+        .into(_database.businessDayEvents)
+        .insert(
+          BusinessDayEventsCompanion.insert(
+            id: _newId(),
+            businessDayId: day.id,
+            type: BusinessDayEventType.closed.name,
+            actorAccountId: accountId,
+            occurredAt: nowUtc,
+            note: Value(jsonEncode(details)),
+          ),
+        );
+    await _appendBusinessDayAudit(
+      dayId: day.id,
+      actorAccountId: accountId,
+      occurredAt: nowUtc,
+      details: details,
+    );
+  }
+
+  Future<Money> _expectedCashForDay(String businessDayId) async {
+    final sales =
+        await (_database.select(_database.sales)..where(
+              (row) =>
+                  row.businessDayId.equals(businessDayId) &
+                  row.status.equals(SaleStatus.confirmed.name),
+            ))
+            .get();
+    return Money(sales.fold(0, (total, sale) => total + sale.totalMillimes));
   }
 
   Future<Map<String, Product>> _loadProducts(
@@ -343,6 +404,25 @@ class DriftSaleRepository implements SaleRepository {
           type: type.name,
           entityType: 'sale',
           entityId: Value(entityId),
+          actorAccountId: Value(actorAccountId),
+          occurredAt: occurredAt,
+          detailsJson: Value(jsonEncode(details)),
+        ),
+      );
+
+  Future<void> _appendBusinessDayAudit({
+    required String dayId,
+    required String actorAccountId,
+    required DateTime occurredAt,
+    required Map<String, Object> details,
+  }) => _database
+      .into(_database.auditEvents)
+      .insert(
+        AuditEventsCompanion.insert(
+          id: _newId(),
+          type: AuditEventType.businessDayClosed.name,
+          entityType: 'business_day',
+          entityId: Value(dayId),
           actorAccountId: Value(actorAccountId),
           occurredAt: occurredAt,
           detailsJson: Value(jsonEncode(details)),
