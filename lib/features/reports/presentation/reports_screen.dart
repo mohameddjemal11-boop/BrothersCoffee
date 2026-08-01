@@ -40,7 +40,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
   );
 
   Future<void> _reload() async {
-    setState(() => _report = _load());
+    setState(() {
+      _report = _load();
+    });
     await _report;
   }
 

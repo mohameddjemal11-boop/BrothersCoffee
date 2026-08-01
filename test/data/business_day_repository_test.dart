@@ -31,9 +31,9 @@ void main() {
       displayName: 'Responsable',
       pin: '1234',
     );
-    employee = await accounts.create(
+    employee = await accounts.createEmployee(
+      managerAccountId: manager.id,
       displayName: 'Serveur',
-      role: AccountRole.employee,
       pin: '5678',
     );
     final category = await categories.create(name: 'Cafés');

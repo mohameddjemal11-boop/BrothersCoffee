@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../app/app_controller.dart';
 import '../../../domain/entities/account.dart';
 import '../../../domain/repositories/catalog_repositories.dart';
+import '../../../domain/repositories/account_administration_repository.dart';
 import '../../../domain/repositories/business_day_repository.dart';
 import '../../../domain/repositories/report_repository.dart';
 import '../../../domain/repositories/sale_repository.dart';
@@ -13,6 +14,7 @@ class AuthGate extends StatelessWidget {
   const AuthGate({
     super.key,
     required this.controller,
+    required this.accountAdministration,
     required this.categories,
     required this.products,
     required this.sales,
@@ -21,6 +23,7 @@ class AuthGate extends StatelessWidget {
   });
 
   final AppController controller;
+  final AccountAdministrationRepository accountAdministration;
   final CategoryRepository categories;
   final ProductRepository products;
   final SaleRepository sales;
@@ -43,6 +46,7 @@ class AuthGate extends StatelessWidget {
         case AppPhase.signedIn:
           return PosShellScreen(
             account: controller.activeAccount!,
+            accountAdministration: accountAdministration,
             categories: categories,
             products: products,
             sales: sales,

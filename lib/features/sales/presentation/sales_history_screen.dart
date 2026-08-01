@@ -31,7 +31,9 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
   );
 
   Future<void> _reload() async {
-    setState(() => _history = _load());
+    setState(() {
+      _history = _load();
+    });
     await _history;
   }
 

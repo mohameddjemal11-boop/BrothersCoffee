@@ -102,5 +102,18 @@
   "@quantityValue": {"placeholders": {"quantity": {"type": "int"}}},
   "unknownLabel": "Non renseigné",
   "businessDayClosedError": "La journée est clôturée. Un responsable doit la rouvrir avant une nouvelle vente.",
-  "millimesUnit": "millimes"
+  "millimesUnit": "millimes",
+  "accountManagement": "Gestion des comptes",
+  "addEmployee": "Ajouter un employé",
+  "managerRole": "Responsable",
+  "employeeRole": "Employé",
+  "editAccount": "Modifier le compte",
+  "newPinOptional": "Nouveau PIN (facultatif)",
+  "archiveAccount": "Archiver le compte",
+  "archiveAccountQuestion": "Archiver le compte de {name} ?",
+  "@archiveAccountQuestion": {"placeholders": {"name": {"type": "String"}}},
+  "accountSaved": "Le compte a été enregistré.",
+  "accountArchived": "Le compte a été archivé.",
+  "accountActionFailed": "L’opération sur le compte a échoué.",
+  "accountLoadFailed": "Impossible de charger les comptes."
 }

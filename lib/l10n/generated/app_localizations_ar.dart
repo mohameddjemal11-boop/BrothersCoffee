@@ -314,4 +314,42 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get millimesUnit => 'مليم';
+
+  @override
+  String get accountManagement => 'إدارة الحسابات';
+
+  @override
+  String get addEmployee => 'إضافة موظف';
+
+  @override
+  String get managerRole => 'مسؤول';
+
+  @override
+  String get employeeRole => 'موظف';
+
+  @override
+  String get editAccount => 'تعديل الحساب';
+
+  @override
+  String get newPinOptional => 'رمز PIN جديد (اختياري)';
+
+  @override
+  String get archiveAccount => 'أرشفة الحساب';
+
+  @override
+  String archiveAccountQuestion(String name) {
+    return 'هل تريد أرشفة حساب $name؟';
+  }
+
+  @override
+  String get accountSaved => 'تم حفظ الحساب.';
+
+  @override
+  String get accountArchived => 'تمت أرشفة الحساب.';
+
+  @override
+  String get accountActionFailed => 'تعذرت عملية الحساب.';
+
+  @override
+  String get accountLoadFailed => 'تعذر تحميل الحسابات.';
 }

@@ -9,6 +9,7 @@ import 'package:brothers_coffee_pos/domain/entities/enums.dart';
 import 'package:brothers_coffee_pos/domain/entities/sale.dart';
 import 'package:brothers_coffee_pos/domain/entities/report.dart';
 import 'package:brothers_coffee_pos/domain/repositories/business_day_repository.dart';
+import 'package:brothers_coffee_pos/domain/repositories/account_administration_repository.dart';
 import 'package:brothers_coffee_pos/domain/repositories/catalog_repositories.dart';
 import 'package:brothers_coffee_pos/domain/repositories/sale_repository.dart';
 import 'package:brothers_coffee_pos/domain/repositories/report_repository.dart';
@@ -63,6 +64,7 @@ void main() {
             updatedAt: now,
             revision: 1,
           ),
+          accountAdministration: _AccountAdministration(),
           categories: _Categories(category),
           products: _Products(product),
           sales: sales,
@@ -73,6 +75,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+
+    expect(find.byTooltip('Gestion des comptes'), findsNothing);
 
     await tester.tap(find.text('Espresso').first);
     await tester.pump();
@@ -136,6 +140,34 @@ class _BusinessDays implements BusinessDayRepository, ReportRepository {
     required String managerAccountId,
     required String startDate,
     required String endDate,
+  }) => throw UnimplementedError();
+}
+
+class _AccountAdministration implements AccountAdministrationRepository {
+  @override
+  Future<void> archiveEmployee({
+    required String managerAccountId,
+    required String accountId,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<Account> createEmployee({
+    required String managerAccountId,
+    required String displayName,
+    required String pin,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<List<Account>> listForManagement({
+    required String managerAccountId,
+  }) async => const [];
+
+  @override
+  Future<Account> updateAccount({
+    required String managerAccountId,
+    required String accountId,
+    String? displayName,
+    String? pin,
   }) => throw UnimplementedError();
 }
 

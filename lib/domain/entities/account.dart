@@ -19,3 +19,17 @@ class Account {
   final DateTime updatedAt;
   final int revision;
 }
+
+enum AccountFailureCode {
+  inactiveManager,
+  managerRequired,
+  accountNotFound,
+  cannotArchiveManager,
+  nameRequired,
+}
+
+class AccountFailure implements Exception {
+  const AccountFailure(this.code);
+
+  final AccountFailureCode code;
+}

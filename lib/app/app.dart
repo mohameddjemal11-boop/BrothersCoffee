@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../domain/repositories/account_repository.dart';
+import '../domain/repositories/account_administration_repository.dart';
 import '../domain/repositories/business_day_repository.dart';
 import '../domain/repositories/catalog_repositories.dart';
 import '../domain/repositories/report_repository.dart';
@@ -14,6 +15,7 @@ class BrothersCoffeeApp extends StatefulWidget {
   const BrothersCoffeeApp({
     super.key,
     required this.accounts,
+    required this.accountAdministration,
     required this.categories,
     required this.products,
     required this.sales,
@@ -22,6 +24,7 @@ class BrothersCoffeeApp extends StatefulWidget {
   });
 
   final AccountRepository accounts;
+  final AccountAdministrationRepository accountAdministration;
   final CategoryRepository categories;
   final ProductRepository products;
   final SaleRepository sales;
@@ -50,6 +53,7 @@ class _BrothersCoffeeAppState extends State<BrothersCoffeeApp> {
     supportedLocales: AppLocalizations.supportedLocales,
     home: AuthGate(
       controller: _controller,
+      accountAdministration: widget.accountAdministration,
       categories: widget.categories,
       products: widget.products,
       sales: widget.sales,

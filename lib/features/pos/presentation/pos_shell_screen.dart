@@ -7,11 +7,13 @@ import '../../../domain/entities/catalog.dart';
 import '../../../domain/entities/enums.dart';
 import '../../../domain/entities/sale.dart';
 import '../../../domain/repositories/catalog_repositories.dart';
+import '../../../domain/repositories/account_administration_repository.dart';
 import '../../../domain/repositories/business_day_repository.dart';
 import '../../../domain/repositories/report_repository.dart';
 import '../../../domain/repositories/sale_repository.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../catalog/presentation/catalog_admin_screen.dart';
+import '../../accounts/presentation/account_management_screen.dart';
 import '../../day_close/presentation/day_close_dialog.dart';
 import '../../reports/presentation/reports_screen.dart';
 import '../../sales/presentation/sales_history_screen.dart';
@@ -21,6 +23,7 @@ class PosShellScreen extends StatefulWidget {
   const PosShellScreen({
     super.key,
     required this.account,
+    required this.accountAdministration,
     required this.categories,
     required this.products,
     required this.sales,
@@ -29,6 +32,7 @@ class PosShellScreen extends StatefulWidget {
     required this.onSwitchUser,
   });
   final Account account;
+  final AccountAdministrationRepository accountAdministration;
   final CategoryRepository categories;
   final ProductRepository products;
   final SaleRepository sales;
@@ -60,6 +64,17 @@ class _PosShellScreenState extends State<PosShellScreen> {
       MaterialPageRoute(
         builder: (_) =>
             SalesHistoryScreen(manager: widget.account, sales: widget.sales),
+      ),
+    );
+  }
+
+  Future<void> _manageAccounts() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AccountManagementScreen(
+          manager: widget.account,
+          accounts: widget.accountAdministration,
+        ),
       ),
     );
   }
@@ -172,6 +187,7 @@ class _PosShellScreenState extends State<PosShellScreen> {
                   account: widget.account,
                   landscape: landscape,
                   onManage: _manage,
+                  onManageAccounts: _manageAccounts,
                   onHistory: _openHistory,
                   onCloseDay: _closeDay,
                   onReports: _openReports,
@@ -250,6 +266,7 @@ class _TopBar extends StatelessWidget {
     required this.account,
     required this.landscape,
     required this.onManage,
+    required this.onManageAccounts,
     required this.onHistory,
     required this.onCloseDay,
     required this.onReports,
@@ -257,7 +274,12 @@ class _TopBar extends StatelessWidget {
   });
   final Account account;
   final bool landscape;
-  final VoidCallback onManage, onHistory, onCloseDay, onReports, onSwitchUser;
+  final VoidCallback onManage;
+  final VoidCallback onManageAccounts;
+  final VoidCallback onHistory;
+  final VoidCallback onCloseDay;
+  final VoidCallback onReports;
+  final VoidCallback onSwitchUser;
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
@@ -317,6 +339,12 @@ class _TopBar extends StatelessWidget {
             tooltip: l.management,
             onPressed: onManage,
             icon: const Icon(Icons.settings_outlined),
+          ),
+          const SizedBox(width: 8),
+          IconButton.filledTonal(
+            tooltip: l.accountManagement,
+            onPressed: onManageAccounts,
+            icon: const Icon(Icons.manage_accounts_outlined),
           ),
         ],
       ],

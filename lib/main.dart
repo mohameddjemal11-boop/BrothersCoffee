@@ -10,10 +10,12 @@ import 'data/repositories/drift_sale_repository.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   final database = AppDatabase.defaults();
+  final accounts = DriftAccountRepository(database);
   final businessDays = DriftBusinessDayRepository(database);
   runApp(
     BrothersCoffeeApp(
-      accounts: DriftAccountRepository(database),
+      accounts: accounts,
+      accountAdministration: accounts,
       categories: DriftCategoryRepository(database),
       products: DriftProductRepository(database),
       sales: DriftSaleRepository(database),

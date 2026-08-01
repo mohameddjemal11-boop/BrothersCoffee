@@ -6,6 +6,7 @@ import 'package:brothers_coffee_pos/domain/entities/business_day.dart';
 import 'package:brothers_coffee_pos/domain/entities/report.dart';
 import 'package:brothers_coffee_pos/domain/entities/enums.dart';
 import 'package:brothers_coffee_pos/domain/repositories/account_repository.dart';
+import 'package:brothers_coffee_pos/domain/repositories/account_administration_repository.dart';
 import 'package:brothers_coffee_pos/domain/repositories/catalog_repositories.dart';
 import 'package:brothers_coffee_pos/domain/repositories/business_day_repository.dart';
 import 'package:brothers_coffee_pos/domain/entities/sale.dart';
@@ -15,9 +16,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets('first launch renders manager setup', (tester) async {
+    final accounts = FakeAccounts();
     await tester.pumpWidget(
       BrothersCoffeeApp(
-        accounts: FakeAccounts(),
+        accounts: accounts,
+        accountAdministration: accounts,
         categories: FakeCategories(),
         products: FakeProducts(),
         sales: FakeSales(),
@@ -57,7 +60,8 @@ class FakeBusinessDays implements BusinessDayRepository, ReportRepository {
   }) => throw UnimplementedError();
 }
 
-class FakeAccounts implements AccountRepository {
+class FakeAccounts
+    implements AccountRepository, AccountAdministrationRepository {
   final List<Account> _accounts = [];
   @override
   Future<Account?> authenticate(String accountId, String pin) async => null;
@@ -80,20 +84,31 @@ class FakeAccounts implements AccountRepository {
   }
 
   @override
-  Future<Account> create({
+  Future<List<Account>> listActive() async => _accounts;
+
+  @override
+  Future<void> archiveEmployee({
+    required String managerAccountId,
+    required String accountId,
+  }) async {}
+
+  @override
+  Future<Account> createEmployee({
+    required String managerAccountId,
     required String displayName,
-    required AccountRole role,
     required String pin,
   }) => throw UnimplementedError();
+
   @override
-  Future<void> archive(String id) async {}
+  Future<List<Account>> listForManagement({
+    required String managerAccountId,
+  }) async => _accounts;
+
   @override
-  Future<List<Account>> listActive() async => _accounts;
-  @override
-  Future<Account> update({
-    required String id,
+  Future<Account> updateAccount({
+    required String managerAccountId,
+    required String accountId,
     String? displayName,
-    AccountRole? role,
     String? pin,
   }) => throw UnimplementedError();
 }
