@@ -120,6 +120,28 @@ class AppLocalizationsFr extends AppLocalizations {
   String get addProduct => 'Ajouter un produit';
 
   @override
+  String get edit => 'Modifier';
+
+  @override
+  String get editCategory => 'Modifier la catégorie';
+
+  @override
+  String get editProduct => 'Modifier le produit';
+
+  @override
+  String get choosePhoto => 'Choisir une photo';
+
+  @override
+  String get replacePhoto => 'Remplacer la photo';
+
+  @override
+  String get removePhoto => 'Supprimer la photo';
+
+  @override
+  String get mediaImportFailed =>
+      'La photo n’a pas pu être importée. Vérifiez le format et l’espace disponible, puis réessayez.';
+
+  @override
   String get archive => 'Archiver';
 
   @override

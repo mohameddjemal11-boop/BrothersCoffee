@@ -3,6 +3,9 @@ import 'package:brothers_coffee_pos/data/database/app_database.dart';
 import 'package:brothers_coffee_pos/data/repositories/drift_account_repository.dart';
 import 'package:brothers_coffee_pos/data/repositories/drift_catalog_repositories.dart';
 import 'package:brothers_coffee_pos/domain/entities/account.dart';
+import 'package:brothers_coffee_pos/domain/repositories/catalog_repositories.dart';
+import 'package:brothers_coffee_pos/domain/repositories/media_store.dart';
+import 'package:brothers_coffee_pos/features/catalog/application/catalog_media_service.dart';
 import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -119,6 +122,106 @@ void main() {
     expect(await products.listActive(categoryId: drinks.id), isEmpty);
   });
 
+  test('catalog image references support keep, replace, and remove', () async {
+    final categories = DriftCategoryRepository(database);
+    final products = DriftProductRepository(database);
+    final category = await categories.create(
+      name: 'Boissons',
+      imageRef: 'media/category.jpg',
+    );
+    final product = await products.create(
+      categoryId: category.id,
+      name: 'Espresso',
+      price: const Money(2500),
+      imageRef: 'media/product.jpg',
+    );
+
+    final kept = await products.update(id: product.id, name: 'Café');
+    final replaced = await categories.update(
+      id: category.id,
+      image: const SetImageRef('media/replacement.png'),
+    );
+    final removed = await products.update(
+      id: product.id,
+      image: const RemoveImageRef(),
+    );
+
+    expect(kept.imageRef, 'media/product.jpg');
+    expect(replaced.imageRef, 'media/replacement.png');
+    expect(removed.imageRef, isNull);
+    expect(await categories.referencesImage('media/replacement.png'), isTrue);
+    expect(await products.referencesImage('media/product.jpg'), isFalse);
+  });
+
+  test('shared image references remain detectable when duplicated', () async {
+    final categories = DriftCategoryRepository(database);
+    final products = DriftProductRepository(database);
+    final first = await categories.create(
+      imageRef: 'media/shared.jpg',
+      name: 'A',
+    );
+    await categories.create(imageRef: 'media/shared.jpg', name: 'B');
+    await categories.create(imageRef: 'media/shared.jpg', name: 'C');
+    final firstProduct = await products.create(
+      categoryId: first.id,
+      name: 'One',
+      price: const Money(1000),
+      imageRef: 'media/shared-product.jpg',
+    );
+    await products.create(
+      categoryId: first.id,
+      name: 'Two',
+      price: const Money(1000),
+      imageRef: 'media/shared-product.jpg',
+    );
+    await products.create(
+      categoryId: first.id,
+      name: 'Three',
+      price: const Money(1000),
+      imageRef: 'media/shared-product.jpg',
+    );
+
+    expect(
+      await categories.referencesImage(
+        'media/shared.jpg',
+        excludingId: first.id,
+      ),
+      isTrue,
+    );
+    expect(
+      await products.referencesImage(
+        'media/shared-product.jpg',
+        excludingId: firstProduct.id,
+      ),
+      isTrue,
+    );
+  });
+
+  test('successful image update survives old-file cleanup failure', () async {
+    final categories = DriftCategoryRepository(database);
+    final products = DriftProductRepository(database);
+    final category = await categories.create(
+      name: 'Boissons',
+      imageRef: 'media/old.jpg',
+    );
+    final service = CatalogMediaService(
+      categories: categories,
+      products: products,
+      mediaStore: const _FailingDeleteMediaStore(),
+    );
+
+    await categories.update(
+      id: category.id,
+      image: const SetImageRef('media/new.jpg'),
+    );
+    await service.deleteIfOrphanBestEffort(
+      category.imageRef,
+      excludingCategoryId: category.id,
+    );
+
+    expect((await categories.listActive()).single.imageRef, 'media/new.jpg');
+  });
+
   test('schema rejects non-product and invalid snapshot sale lines', () async {
     final accounts = DriftAccountRepository(database);
     final manager = await accounts.bootstrapManager(
@@ -180,4 +283,17 @@ void main() {
       throwsA(isA<Exception>()),
     );
   });
+}
+
+class _FailingDeleteMediaStore implements MediaStore {
+  const _FailingDeleteMediaStore();
+
+  @override
+  Future<void> delete(String imageRef) => throw StateError('disk failure');
+
+  @override
+  Future<String> importImage(PickedImage image) => throw UnimplementedError();
+
+  @override
+  Future<Uint8List?> read(String imageRef) async => null;
 }

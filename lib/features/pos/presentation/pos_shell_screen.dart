@@ -11,8 +11,10 @@ import '../../../domain/repositories/account_administration_repository.dart';
 import '../../../domain/repositories/business_day_repository.dart';
 import '../../../domain/repositories/report_repository.dart';
 import '../../../domain/repositories/sale_repository.dart';
+import '../../../domain/repositories/media_store.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../catalog/presentation/catalog_admin_screen.dart';
+import '../../catalog/presentation/managed_image.dart';
 import '../../accounts/presentation/account_management_screen.dart';
 import '../../day_close/presentation/day_close_dialog.dart';
 import '../../reports/presentation/reports_screen.dart';
@@ -29,6 +31,8 @@ class PosShellScreen extends StatefulWidget {
     required this.sales,
     required this.businessDays,
     required this.reports,
+    this.mediaStore = const NoopMediaStore(),
+    this.imagePicker = const NoopImagePickerService(),
     required this.onSwitchUser,
   });
   final Account account;
@@ -38,6 +42,8 @@ class PosShellScreen extends StatefulWidget {
   final SaleRepository sales;
   final BusinessDayRepository businessDays;
   final ReportRepository reports;
+  final MediaStore mediaStore;
+  final ImagePickerService imagePicker;
   final VoidCallback onSwitchUser;
   @override
   State<PosShellScreen> createState() => _PosShellScreenState();
@@ -53,6 +59,8 @@ class _PosShellScreenState extends State<PosShellScreen> {
         builder: (_) => CatalogAdminScreen(
           categories: widget.categories,
           products: widget.products,
+          mediaStore: widget.mediaStore,
+          imagePicker: widget.imagePicker,
         ),
       ),
     );
@@ -211,6 +219,7 @@ class _PosShellScreenState extends State<PosShellScreen> {
                                 isManager:
                                     widget.account.role == AccountRole.manager,
                                 onManage: _manage,
+                                mediaStore: widget.mediaStore,
                               ),
                             ),
                             const SizedBox(width: 16),
@@ -237,6 +246,7 @@ class _PosShellScreenState extends State<PosShellScreen> {
                                 isManager:
                                     widget.account.role == AccountRole.manager,
                                 onManage: _manage,
+                                mediaStore: widget.mediaStore,
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -449,6 +459,7 @@ class _CatalogPane extends StatelessWidget {
     required this.basket,
     required this.isManager,
     required this.onManage,
+    required this.mediaStore,
   });
   final CategoryRepository categories;
   final ProductRepository products;
@@ -457,6 +468,7 @@ class _CatalogPane extends StatelessWidget {
   final BasketController basket;
   final bool isManager;
   final VoidCallback onManage;
+  final MediaStore mediaStore;
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
@@ -535,7 +547,16 @@ class _CatalogPane extends StatelessWidget {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          const Icon(Icons.local_cafe_outlined),
+                                          Expanded(
+                                            child: ManagedImage(
+                                              imageRef: product.imageRef,
+                                              mediaStore: mediaStore,
+                                              fallback: const Icon(
+                                                Icons.local_cafe_outlined,
+                                              ),
+                                              width: double.infinity,
+                                            ),
+                                          ),
                                           const Spacer(),
                                           Text(
                                             product.name,

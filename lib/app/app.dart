@@ -6,6 +6,7 @@ import '../domain/repositories/business_day_repository.dart';
 import '../domain/repositories/catalog_repositories.dart';
 import '../domain/repositories/report_repository.dart';
 import '../domain/repositories/sale_repository.dart';
+import '../domain/repositories/media_store.dart';
 import '../features/auth/presentation/auth_gate.dart';
 import '../l10n/generated/app_localizations.dart';
 import 'app_controller.dart';
@@ -21,6 +22,8 @@ class BrothersCoffeeApp extends StatefulWidget {
     required this.sales,
     required this.businessDays,
     required this.reports,
+    this.mediaStore = const NoopMediaStore(),
+    this.imagePicker = const NoopImagePickerService(),
   });
 
   final AccountRepository accounts;
@@ -30,6 +33,8 @@ class BrothersCoffeeApp extends StatefulWidget {
   final SaleRepository sales;
   final BusinessDayRepository businessDays;
   final ReportRepository reports;
+  final MediaStore mediaStore;
+  final ImagePickerService imagePicker;
 
   @override
   State<BrothersCoffeeApp> createState() => _BrothersCoffeeAppState();
@@ -59,6 +64,8 @@ class _BrothersCoffeeAppState extends State<BrothersCoffeeApp> {
       sales: widget.sales,
       businessDays: widget.businessDays,
       reports: widget.reports,
+      mediaStore: widget.mediaStore,
+      imagePicker: widget.imagePicker,
     ),
   );
 }

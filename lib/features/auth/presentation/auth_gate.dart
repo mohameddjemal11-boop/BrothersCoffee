@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../app/app_controller.dart';
 import '../../../domain/entities/account.dart';
 import '../../../domain/repositories/catalog_repositories.dart';
+import '../../../domain/repositories/media_store.dart';
 import '../../../domain/repositories/account_administration_repository.dart';
 import '../../../domain/repositories/business_day_repository.dart';
 import '../../../domain/repositories/report_repository.dart';
@@ -20,6 +21,8 @@ class AuthGate extends StatelessWidget {
     required this.sales,
     required this.businessDays,
     required this.reports,
+    required this.mediaStore,
+    required this.imagePicker,
   });
 
   final AppController controller;
@@ -29,6 +32,8 @@ class AuthGate extends StatelessWidget {
   final SaleRepository sales;
   final BusinessDayRepository businessDays;
   final ReportRepository reports;
+  final MediaStore mediaStore;
+  final ImagePickerService imagePicker;
 
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
@@ -52,6 +57,8 @@ class AuthGate extends StatelessWidget {
             sales: sales,
             businessDays: businessDays,
             reports: reports,
+            mediaStore: mediaStore,
+            imagePicker: imagePicker,
             onSwitchUser: controller.switchUser,
           );
       }
