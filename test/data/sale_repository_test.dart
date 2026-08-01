@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:brothers_coffee_pos/core/money.dart';
 import 'package:brothers_coffee_pos/data/database/app_database.dart';
 import 'package:brothers_coffee_pos/data/repositories/drift_account_repository.dart';
@@ -7,6 +9,7 @@ import 'package:brothers_coffee_pos/domain/entities/account.dart' as domain;
 import 'package:brothers_coffee_pos/domain/entities/catalog.dart' as domain;
 import 'package:brothers_coffee_pos/domain/entities/enums.dart';
 import 'package:brothers_coffee_pos/domain/entities/sale.dart';
+import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -141,7 +144,67 @@ void main() {
     );
   });
 
-  test('an older open business day blocks new sales atomically', () async {
+  test('first sale on a new date automatically rolls the open day', () async {
+    final firstDay = DriftSaleRepository(
+      database,
+      now: () => DateTime(2026, 8, 1, 23, 59),
+      newId: nextId,
+    );
+    await firstDay.confirmCashSale(
+      accountId: employee.id,
+      lines: [SaleDraftLine(productId: espresso.id, quantity: 1)],
+    );
+    final nextDay = DriftSaleRepository(
+      database,
+      now: () => DateTime(2026, 8, 2, 0, 1),
+      newId: nextId,
+    );
+
+    final sale = await nextDay.confirmCashSale(
+      accountId: employee.id,
+      lines: [SaleDraftLine(productId: espresso.id, quantity: 1)],
+    );
+    final days = await database.select(database.businessDays).get();
+    final previousDay = days.singleWhere(
+      (day) => day.businessDate == '2026-08-01',
+    );
+    final currentDay = days.singleWhere(
+      (day) => day.businessDate == '2026-08-02',
+    );
+    final previousEvents = await (database.select(
+      database.businessDayEvents,
+    )..where((event) => event.businessDayId.equals(previousDay.id))).get();
+    final rolloverAudit =
+        await (database.select(database.auditEvents)..where(
+              (event) =>
+                  event.type.equals(AuditEventType.businessDayClosed.name) &
+                  event.entityId.equals(previousDay.id),
+            ))
+            .getSingle();
+
+    expect(sale.businessDate, '2026-08-02');
+    expect(sale.displayNumber, 1);
+    expect(await database.select(database.sales).get(), hasLength(2));
+    expect(previousDay.status, BusinessDayStatus.closed.name);
+    expect(previousDay.expectedCashMillimes, 2500);
+    expect(previousDay.countedCashMillimes, isNull);
+    expect(previousDay.varianceMillimes, isNull);
+    expect(previousDay.closedByAccountId, employee.id);
+    expect(currentDay.status, BusinessDayStatus.open.name);
+    expect(previousEvents.map((event) => event.type), [
+      BusinessDayEventType.opened.name,
+      BusinessDayEventType.closed.name,
+    ]);
+    expect(jsonDecode(rolloverAudit.detailsJson!)['automaticRollover'], isTrue);
+    expect(
+      (await database.select(database.saleNumberSequences).get())
+          .singleWhere((sequence) => sequence.businessDayId == currentDay.id)
+          .nextNumber,
+      2,
+    );
+  });
+
+  test('failed new-date sale rolls automatic day transition back', () async {
     final firstDay = DriftSaleRepository(
       database,
       now: () => DateTime(2026, 8, 1, 23, 59),
@@ -160,16 +223,20 @@ void main() {
     await expectLater(
       nextDay.confirmCashSale(
         accountId: employee.id,
-        lines: [SaleDraftLine(productId: espresso.id, quantity: 1)],
+        lines: const [SaleDraftLine(productId: 'missing', quantity: 1)],
       ),
-      throwsA(_saleFailure(SaleFailureCode.previousBusinessDayOpen)),
+      throwsA(_saleFailure(SaleFailureCode.unavailableProduct)),
     );
+
+    final days = await database.select(database.businessDays).get();
+    expect(days, hasLength(1));
+    expect(days.single.businessDate, '2026-08-01');
+    expect(days.single.status, BusinessDayStatus.open.name);
+    expect(days.single.closedAt, isNull);
     expect(await database.select(database.sales).get(), hasLength(1));
     expect(
-      (await database.select(database.saleNumberSequences).get())
-          .single
-          .nextNumber,
-      2,
+      await database.select(database.businessDayEvents).get(),
+      hasLength(1),
     );
   });
 

@@ -52,7 +52,7 @@ Use integer quantities only unless the business later explicitly introduces weig
 
 ### Confirm cash sale
 
-Within one SQLite transaction: authorize current role; obtain the only open day or create one when confirming the first sale; validate the basket and integer totals; increment/read the day's sequence; insert sale and immutable line snapshots; set status confirmed. If any operation fails, no day/number/sale/line state is committed.
+Within one SQLite transaction: authorize current role; obtain the only open day or create one when confirming the first sale; when that open day belongs to an older date, close it with computed expected cash and no count, append its audit event, then open the current date; validate the basket and integer totals; increment/read the day's sequence; insert sale and immutable line snapshots; set status confirmed. If any operation fails, no close/open/day/number/sale/line state is committed.
 
 ### Cancel sale
 
@@ -60,7 +60,7 @@ Within one transaction: manager authorization; load sale; require `confirmed` st
 
 ### Close/reopen day
 
-Closing validates `open`, derives expected cash from confirmed non-cancelled sales, optionally records count and variance, and adds event. Reopening requires manager and reason, updates a `closed` day back to `open`, and adds event. Creation of a next day must not occur while an earlier day is open.
+Closing validates `open`, derives expected cash from confirmed non-cancelled sales, optionally records count and variance, and adds an event. Reopening requires manager and reason, updates a `closed` day back to `open`, and adds an event. The first sale on a later date automatically closes an earlier open day without a count and creates the new day in the sale transaction; a new day is never committed while another day remains open.
 
 ## 5. Security and privacy
 

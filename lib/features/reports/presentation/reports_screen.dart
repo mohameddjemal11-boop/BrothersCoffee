@@ -338,46 +338,59 @@ class _Breakdown extends StatelessWidget {
   }
 }
 
-Future<String?> _reasonDialog(BuildContext context) async {
-  final controller = TextEditingController();
-  final result = await showDialog<String>(
-    context: context,
-    builder: (context) {
-      final l10n = AppLocalizations.of(context);
-      String? error;
-      return StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: Text(l10n.reopenDay),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            maxLines: 3,
-            decoration: InputDecoration(
-              labelText: l10n.reopenReason,
-              errorText: error,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l10n.cancel),
-            ),
-            FilledButton(
-              onPressed: () {
-                final reason = controller.text.trim();
-                if (reason.isEmpty) {
-                  setState(() => error = l10n.reasonRequired);
-                  return;
-                }
-                Navigator.pop(context, reason);
-              },
-              child: Text(l10n.confirmReopen),
-            ),
-          ],
+Future<String?> _reasonDialog(BuildContext context) => showDialog<String>(
+  context: context,
+  builder: (context) => const _ReopenReasonDialog(),
+);
+
+class _ReopenReasonDialog extends StatefulWidget {
+  const _ReopenReasonDialog();
+
+  @override
+  State<_ReopenReasonDialog> createState() => _ReopenReasonDialogState();
+}
+
+class _ReopenReasonDialogState extends State<_ReopenReasonDialog> {
+  final TextEditingController _controller = TextEditingController();
+  String? _error;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return AlertDialog(
+      title: Text(l10n.reopenDay),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        maxLines: 3,
+        decoration: InputDecoration(
+          labelText: l10n.reopenReason,
+          errorText: _error,
         ),
-      );
-    },
-  );
-  controller.dispose();
-  return result;
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: () {
+            final reason = _controller.text.trim();
+            if (reason.isEmpty) {
+              setState(() => _error = l10n.reasonRequired);
+              return;
+            }
+            Navigator.pop(context, reason);
+          },
+          child: Text(l10n.confirmReopen),
+        ),
+      ],
+    );
+  }
 }

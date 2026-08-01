@@ -42,7 +42,7 @@ Accounts are local only. PINs must never be stored in clear text; persist a salt
 1. Launch app.
 2. User selects account and enters PIN.
 3. App opens the POS screen for either role; financial information is not rendered or navigable for employees.
-4. A business day is opened automatically and transactionally when the first sale of that day is confirmed.
+4. A business day is opened automatically and transactionally when the first sale of that day is confirmed. If an older day was left open, that same transaction closes it without a cash count before opening the new date.
 
 ### Build and confirm a sale
 
@@ -66,6 +66,7 @@ Accounts are local only. PINs must never be stored in clear text; persist a salt
 3. The app stores counted cash and variance when a count exists.
 4. Day becomes `closed`; no new sale can be confirmed against it.
 5. Only a manager may reopen it, with a required reason and audit record. Reopen restores `open` status and permits sales again.
+6. If the tablet reaches a later business date while the previous day is still open, the first new-date sale automatically closes the older day with expected cash, no counted cash or variance, and an audit event, then opens the new day and confirms the sale atomically.
 
 ### Reports, export, backup, restore
 
@@ -83,7 +84,7 @@ Accounts are local only. PINs must never be stored in clear text; persist a salt
 - Only `draft` baskets can change. `confirmed` sales and their line snapshots cannot be updated or deleted.
 - A cancellation preserves the sale and all original line snapshots. It must include manager, timestamp, and non-empty reason.
 - Only confirmed, non-cancelled cash sales contribute to net cash expectations.
-- At most one business day is open at a time for this installation. Closing/reopening events are auditable.
+- At most one business day is open at a time for this installation. A later date automatically rolls an older open day closed during the first new-date sale; closing/reopening events are auditable.
 - Product/category changes do not rewrite historic sale lines: each sale line stores name, price, and relevant tax/display snapshots at confirmation.
 - All writes that change sale/day state are SQLite transactions.
 - Device time is the source of local dates/timestamps. UI must communicate that reports follow tablet local time; time-zone changes are logged when detectable.
