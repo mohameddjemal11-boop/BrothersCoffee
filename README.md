@@ -19,6 +19,8 @@ Offline-first Android point-of-sale application for a single coffee shop and tab
 
 The agreed product scope is in [Product requirements](docs/PRODUCT_REQUIREMENTS.md), and the technical boundaries are in [Architecture](docs/ARCHITECTURE.md).
 
+The remaining work is split into review-sized branches in the [implementation roadmap](docs/IMPLEMENTATION_ROADMAP.md).
+
 ## Local toolchain
 
 - Flutter: `C:\src\flutter`
