@@ -2162,6 +2162,10 @@ class $BusinessDaysTable extends BusinessDays
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {businessDate},
+  ];
+  @override
   BusinessDay map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return BusinessDay(
@@ -3984,6 +3988,28 @@ class $SaleLinesTable extends SaleLines
         type: DriftSqlType.string,
         requiredDuringInsert: true,
       );
+  static const VerificationMeta _categoryIdSnapshotMeta =
+      const VerificationMeta('categoryIdSnapshot');
+  @override
+  late final GeneratedColumn<String> categoryIdSnapshot =
+      GeneratedColumn<String>(
+        'category_id_snapshot',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _categoryNameSnapshotMeta =
+      const VerificationMeta('categoryNameSnapshot');
+  @override
+  late final GeneratedColumn<String> categoryNameSnapshot =
+      GeneratedColumn<String>(
+        'category_name_snapshot',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _unitPriceMillimesMeta = const VerificationMeta(
     'unitPriceMillimes',
   );
@@ -4038,6 +4064,8 @@ class $SaleLinesTable extends SaleLines
     saleId,
     productId,
     productNameSnapshot,
+    categoryIdSnapshot,
+    categoryNameSnapshot,
     unitPriceMillimes,
     quantity,
     lineTotalMillimes,
@@ -4086,6 +4114,24 @@ class $SaleLinesTable extends SaleLines
       );
     } else if (isInserting) {
       context.missing(_productNameSnapshotMeta);
+    }
+    if (data.containsKey('category_id_snapshot')) {
+      context.handle(
+        _categoryIdSnapshotMeta,
+        categoryIdSnapshot.isAcceptableOrUnknown(
+          data['category_id_snapshot']!,
+          _categoryIdSnapshotMeta,
+        ),
+      );
+    }
+    if (data.containsKey('category_name_snapshot')) {
+      context.handle(
+        _categoryNameSnapshotMeta,
+        categoryNameSnapshot.isAcceptableOrUnknown(
+          data['category_name_snapshot']!,
+          _categoryNameSnapshotMeta,
+        ),
+      );
     }
     if (data.containsKey('unit_price_millimes')) {
       context.handle(
@@ -4153,6 +4199,14 @@ class $SaleLinesTable extends SaleLines
         DriftSqlType.string,
         data['${effectivePrefix}product_name_snapshot'],
       )!,
+      categoryIdSnapshot: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category_id_snapshot'],
+      ),
+      categoryNameSnapshot: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category_name_snapshot'],
+      ),
       unitPriceMillimes: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}unit_price_millimes'],
@@ -4183,6 +4237,8 @@ class SaleLine extends DataClass implements Insertable<SaleLine> {
   final String saleId;
   final String productId;
   final String productNameSnapshot;
+  final String? categoryIdSnapshot;
+  final String? categoryNameSnapshot;
   final int unitPriceMillimes;
   final int quantity;
   final int lineTotalMillimes;
@@ -4192,6 +4248,8 @@ class SaleLine extends DataClass implements Insertable<SaleLine> {
     required this.saleId,
     required this.productId,
     required this.productNameSnapshot,
+    this.categoryIdSnapshot,
+    this.categoryNameSnapshot,
     required this.unitPriceMillimes,
     required this.quantity,
     required this.lineTotalMillimes,
@@ -4204,6 +4262,12 @@ class SaleLine extends DataClass implements Insertable<SaleLine> {
     map['sale_id'] = Variable<String>(saleId);
     map['product_id'] = Variable<String>(productId);
     map['product_name_snapshot'] = Variable<String>(productNameSnapshot);
+    if (!nullToAbsent || categoryIdSnapshot != null) {
+      map['category_id_snapshot'] = Variable<String>(categoryIdSnapshot);
+    }
+    if (!nullToAbsent || categoryNameSnapshot != null) {
+      map['category_name_snapshot'] = Variable<String>(categoryNameSnapshot);
+    }
     map['unit_price_millimes'] = Variable<int>(unitPriceMillimes);
     map['quantity'] = Variable<int>(quantity);
     map['line_total_millimes'] = Variable<int>(lineTotalMillimes);
@@ -4217,6 +4281,12 @@ class SaleLine extends DataClass implements Insertable<SaleLine> {
       saleId: Value(saleId),
       productId: Value(productId),
       productNameSnapshot: Value(productNameSnapshot),
+      categoryIdSnapshot: categoryIdSnapshot == null && nullToAbsent
+          ? const Value.absent()
+          : Value(categoryIdSnapshot),
+      categoryNameSnapshot: categoryNameSnapshot == null && nullToAbsent
+          ? const Value.absent()
+          : Value(categoryNameSnapshot),
       unitPriceMillimes: Value(unitPriceMillimes),
       quantity: Value(quantity),
       lineTotalMillimes: Value(lineTotalMillimes),
@@ -4236,6 +4306,12 @@ class SaleLine extends DataClass implements Insertable<SaleLine> {
       productNameSnapshot: serializer.fromJson<String>(
         json['productNameSnapshot'],
       ),
+      categoryIdSnapshot: serializer.fromJson<String?>(
+        json['categoryIdSnapshot'],
+      ),
+      categoryNameSnapshot: serializer.fromJson<String?>(
+        json['categoryNameSnapshot'],
+      ),
       unitPriceMillimes: serializer.fromJson<int>(json['unitPriceMillimes']),
       quantity: serializer.fromJson<int>(json['quantity']),
       lineTotalMillimes: serializer.fromJson<int>(json['lineTotalMillimes']),
@@ -4250,6 +4326,8 @@ class SaleLine extends DataClass implements Insertable<SaleLine> {
       'saleId': serializer.toJson<String>(saleId),
       'productId': serializer.toJson<String>(productId),
       'productNameSnapshot': serializer.toJson<String>(productNameSnapshot),
+      'categoryIdSnapshot': serializer.toJson<String?>(categoryIdSnapshot),
+      'categoryNameSnapshot': serializer.toJson<String?>(categoryNameSnapshot),
       'unitPriceMillimes': serializer.toJson<int>(unitPriceMillimes),
       'quantity': serializer.toJson<int>(quantity),
       'lineTotalMillimes': serializer.toJson<int>(lineTotalMillimes),
@@ -4262,6 +4340,8 @@ class SaleLine extends DataClass implements Insertable<SaleLine> {
     String? saleId,
     String? productId,
     String? productNameSnapshot,
+    Value<String?> categoryIdSnapshot = const Value.absent(),
+    Value<String?> categoryNameSnapshot = const Value.absent(),
     int? unitPriceMillimes,
     int? quantity,
     int? lineTotalMillimes,
@@ -4271,6 +4351,12 @@ class SaleLine extends DataClass implements Insertable<SaleLine> {
     saleId: saleId ?? this.saleId,
     productId: productId ?? this.productId,
     productNameSnapshot: productNameSnapshot ?? this.productNameSnapshot,
+    categoryIdSnapshot: categoryIdSnapshot.present
+        ? categoryIdSnapshot.value
+        : this.categoryIdSnapshot,
+    categoryNameSnapshot: categoryNameSnapshot.present
+        ? categoryNameSnapshot.value
+        : this.categoryNameSnapshot,
     unitPriceMillimes: unitPriceMillimes ?? this.unitPriceMillimes,
     quantity: quantity ?? this.quantity,
     lineTotalMillimes: lineTotalMillimes ?? this.lineTotalMillimes,
@@ -4284,6 +4370,12 @@ class SaleLine extends DataClass implements Insertable<SaleLine> {
       productNameSnapshot: data.productNameSnapshot.present
           ? data.productNameSnapshot.value
           : this.productNameSnapshot,
+      categoryIdSnapshot: data.categoryIdSnapshot.present
+          ? data.categoryIdSnapshot.value
+          : this.categoryIdSnapshot,
+      categoryNameSnapshot: data.categoryNameSnapshot.present
+          ? data.categoryNameSnapshot.value
+          : this.categoryNameSnapshot,
       unitPriceMillimes: data.unitPriceMillimes.present
           ? data.unitPriceMillimes.value
           : this.unitPriceMillimes,
@@ -4304,6 +4396,8 @@ class SaleLine extends DataClass implements Insertable<SaleLine> {
           ..write('saleId: $saleId, ')
           ..write('productId: $productId, ')
           ..write('productNameSnapshot: $productNameSnapshot, ')
+          ..write('categoryIdSnapshot: $categoryIdSnapshot, ')
+          ..write('categoryNameSnapshot: $categoryNameSnapshot, ')
           ..write('unitPriceMillimes: $unitPriceMillimes, ')
           ..write('quantity: $quantity, ')
           ..write('lineTotalMillimes: $lineTotalMillimes, ')
@@ -4318,6 +4412,8 @@ class SaleLine extends DataClass implements Insertable<SaleLine> {
     saleId,
     productId,
     productNameSnapshot,
+    categoryIdSnapshot,
+    categoryNameSnapshot,
     unitPriceMillimes,
     quantity,
     lineTotalMillimes,
@@ -4331,6 +4427,8 @@ class SaleLine extends DataClass implements Insertable<SaleLine> {
           other.saleId == this.saleId &&
           other.productId == this.productId &&
           other.productNameSnapshot == this.productNameSnapshot &&
+          other.categoryIdSnapshot == this.categoryIdSnapshot &&
+          other.categoryNameSnapshot == this.categoryNameSnapshot &&
           other.unitPriceMillimes == this.unitPriceMillimes &&
           other.quantity == this.quantity &&
           other.lineTotalMillimes == this.lineTotalMillimes &&
@@ -4342,6 +4440,8 @@ class SaleLinesCompanion extends UpdateCompanion<SaleLine> {
   final Value<String> saleId;
   final Value<String> productId;
   final Value<String> productNameSnapshot;
+  final Value<String?> categoryIdSnapshot;
+  final Value<String?> categoryNameSnapshot;
   final Value<int> unitPriceMillimes;
   final Value<int> quantity;
   final Value<int> lineTotalMillimes;
@@ -4352,6 +4452,8 @@ class SaleLinesCompanion extends UpdateCompanion<SaleLine> {
     this.saleId = const Value.absent(),
     this.productId = const Value.absent(),
     this.productNameSnapshot = const Value.absent(),
+    this.categoryIdSnapshot = const Value.absent(),
+    this.categoryNameSnapshot = const Value.absent(),
     this.unitPriceMillimes = const Value.absent(),
     this.quantity = const Value.absent(),
     this.lineTotalMillimes = const Value.absent(),
@@ -4363,6 +4465,8 @@ class SaleLinesCompanion extends UpdateCompanion<SaleLine> {
     required String saleId,
     required String productId,
     required String productNameSnapshot,
+    this.categoryIdSnapshot = const Value.absent(),
+    this.categoryNameSnapshot = const Value.absent(),
     required int unitPriceMillimes,
     required int quantity,
     required int lineTotalMillimes,
@@ -4381,6 +4485,8 @@ class SaleLinesCompanion extends UpdateCompanion<SaleLine> {
     Expression<String>? saleId,
     Expression<String>? productId,
     Expression<String>? productNameSnapshot,
+    Expression<String>? categoryIdSnapshot,
+    Expression<String>? categoryNameSnapshot,
     Expression<int>? unitPriceMillimes,
     Expression<int>? quantity,
     Expression<int>? lineTotalMillimes,
@@ -4393,6 +4499,10 @@ class SaleLinesCompanion extends UpdateCompanion<SaleLine> {
       if (productId != null) 'product_id': productId,
       if (productNameSnapshot != null)
         'product_name_snapshot': productNameSnapshot,
+      if (categoryIdSnapshot != null)
+        'category_id_snapshot': categoryIdSnapshot,
+      if (categoryNameSnapshot != null)
+        'category_name_snapshot': categoryNameSnapshot,
       if (unitPriceMillimes != null) 'unit_price_millimes': unitPriceMillimes,
       if (quantity != null) 'quantity': quantity,
       if (lineTotalMillimes != null) 'line_total_millimes': lineTotalMillimes,
@@ -4406,6 +4516,8 @@ class SaleLinesCompanion extends UpdateCompanion<SaleLine> {
     Value<String>? saleId,
     Value<String>? productId,
     Value<String>? productNameSnapshot,
+    Value<String?>? categoryIdSnapshot,
+    Value<String?>? categoryNameSnapshot,
     Value<int>? unitPriceMillimes,
     Value<int>? quantity,
     Value<int>? lineTotalMillimes,
@@ -4417,6 +4529,8 @@ class SaleLinesCompanion extends UpdateCompanion<SaleLine> {
       saleId: saleId ?? this.saleId,
       productId: productId ?? this.productId,
       productNameSnapshot: productNameSnapshot ?? this.productNameSnapshot,
+      categoryIdSnapshot: categoryIdSnapshot ?? this.categoryIdSnapshot,
+      categoryNameSnapshot: categoryNameSnapshot ?? this.categoryNameSnapshot,
       unitPriceMillimes: unitPriceMillimes ?? this.unitPriceMillimes,
       quantity: quantity ?? this.quantity,
       lineTotalMillimes: lineTotalMillimes ?? this.lineTotalMillimes,
@@ -4440,6 +4554,14 @@ class SaleLinesCompanion extends UpdateCompanion<SaleLine> {
     if (productNameSnapshot.present) {
       map['product_name_snapshot'] = Variable<String>(
         productNameSnapshot.value,
+      );
+    }
+    if (categoryIdSnapshot.present) {
+      map['category_id_snapshot'] = Variable<String>(categoryIdSnapshot.value);
+    }
+    if (categoryNameSnapshot.present) {
+      map['category_name_snapshot'] = Variable<String>(
+        categoryNameSnapshot.value,
       );
     }
     if (unitPriceMillimes.present) {
@@ -4467,6 +4589,8 @@ class SaleLinesCompanion extends UpdateCompanion<SaleLine> {
           ..write('saleId: $saleId, ')
           ..write('productId: $productId, ')
           ..write('productNameSnapshot: $productNameSnapshot, ')
+          ..write('categoryIdSnapshot: $categoryIdSnapshot, ')
+          ..write('categoryNameSnapshot: $categoryNameSnapshot, ')
           ..write('unitPriceMillimes: $unitPriceMillimes, ')
           ..write('quantity: $quantity, ')
           ..write('lineTotalMillimes: $lineTotalMillimes, ')
@@ -9388,6 +9512,8 @@ typedef $$SaleLinesTableCreateCompanionBuilder =
       required String saleId,
       required String productId,
       required String productNameSnapshot,
+      Value<String?> categoryIdSnapshot,
+      Value<String?> categoryNameSnapshot,
       required int unitPriceMillimes,
       required int quantity,
       required int lineTotalMillimes,
@@ -9400,6 +9526,8 @@ typedef $$SaleLinesTableUpdateCompanionBuilder =
       Value<String> saleId,
       Value<String> productId,
       Value<String> productNameSnapshot,
+      Value<String?> categoryIdSnapshot,
+      Value<String?> categoryNameSnapshot,
       Value<int> unitPriceMillimes,
       Value<int> quantity,
       Value<int> lineTotalMillimes,
@@ -9462,6 +9590,16 @@ class $$SaleLinesTableFilterComposer
 
   ColumnFilters<String> get productNameSnapshot => $composableBuilder(
     column: $table.productNameSnapshot,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get categoryIdSnapshot => $composableBuilder(
+    column: $table.categoryIdSnapshot,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get categoryNameSnapshot => $composableBuilder(
+    column: $table.categoryNameSnapshot,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9551,6 +9689,16 @@ class $$SaleLinesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get categoryIdSnapshot => $composableBuilder(
+    column: $table.categoryIdSnapshot,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get categoryNameSnapshot => $composableBuilder(
+    column: $table.categoryNameSnapshot,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get unitPriceMillimes => $composableBuilder(
     column: $table.unitPriceMillimes,
     builder: (column) => ColumnOrderings(column),
@@ -9632,6 +9780,16 @@ class $$SaleLinesTableAnnotationComposer
 
   GeneratedColumn<String> get productNameSnapshot => $composableBuilder(
     column: $table.productNameSnapshot,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get categoryIdSnapshot => $composableBuilder(
+    column: $table.categoryIdSnapshot,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get categoryNameSnapshot => $composableBuilder(
+    column: $table.categoryNameSnapshot,
     builder: (column) => column,
   );
 
@@ -9732,6 +9890,8 @@ class $$SaleLinesTableTableManager
                 Value<String> saleId = const Value.absent(),
                 Value<String> productId = const Value.absent(),
                 Value<String> productNameSnapshot = const Value.absent(),
+                Value<String?> categoryIdSnapshot = const Value.absent(),
+                Value<String?> categoryNameSnapshot = const Value.absent(),
                 Value<int> unitPriceMillimes = const Value.absent(),
                 Value<int> quantity = const Value.absent(),
                 Value<int> lineTotalMillimes = const Value.absent(),
@@ -9742,6 +9902,8 @@ class $$SaleLinesTableTableManager
                 saleId: saleId,
                 productId: productId,
                 productNameSnapshot: productNameSnapshot,
+                categoryIdSnapshot: categoryIdSnapshot,
+                categoryNameSnapshot: categoryNameSnapshot,
                 unitPriceMillimes: unitPriceMillimes,
                 quantity: quantity,
                 lineTotalMillimes: lineTotalMillimes,
@@ -9754,6 +9916,8 @@ class $$SaleLinesTableTableManager
                 required String saleId,
                 required String productId,
                 required String productNameSnapshot,
+                Value<String?> categoryIdSnapshot = const Value.absent(),
+                Value<String?> categoryNameSnapshot = const Value.absent(),
                 required int unitPriceMillimes,
                 required int quantity,
                 required int lineTotalMillimes,
@@ -9764,6 +9928,8 @@ class $$SaleLinesTableTableManager
                 saleId: saleId,
                 productId: productId,
                 productNameSnapshot: productNameSnapshot,
+                categoryIdSnapshot: categoryIdSnapshot,
+                categoryNameSnapshot: categoryNameSnapshot,
                 unitPriceMillimes: unitPriceMillimes,
                 quantity: quantity,
                 lineTotalMillimes: lineTotalMillimes,

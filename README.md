@@ -6,11 +6,15 @@ Offline-first Android point-of-sale application for a single coffee shop and tab
 
 - Flutter/Dart Android application with portrait and landscape layouts
 - French localization with Arabic/RTL resources prepared
-- Drift/SQLite schema for accounts, catalogue, business days, sales, audit, and metadata
+- Drift/SQLite schema and migration support for accounts, catalogue, business days, sales, audit, and metadata
 - Argon2id manager/employee PIN hashing
-- Exact TND arithmetic using integer millimes
+- Exact money arithmetic and UI entry/display using integer millimes
 - Local account and catalogue repositories
-- Responsive point-of-sale shell
+- Transactional cash-sale confirmation with immutable price/name snapshots
+- Manager sales history, sale details, and audited cancellation with a required reason
+- Employee/manager day closing with optional cash count and exact variance
+- Manager-only audited reopening and inclusive daily/date-range reporting
+- Responsive point-of-sale shell with French and Arabic resources
 
 The agreed product scope is in [Product requirements](docs/PRODUCT_REQUIREMENTS.md), and the technical boundaries are in [Architecture](docs/ARCHITECTURE.md).
 

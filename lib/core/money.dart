@@ -8,29 +8,17 @@ extension type const Money(int millimes) implements int {
   Money operator -(Money other) => Money(millimes - other.millimes);
   Money operator *(int quantity) => Money(millimes * quantity);
 
-  String format({String locale = 'fr_TN'}) {
-    final formatter = NumberFormat.currency(
-      locale: locale,
-      name: 'TND',
-      symbol: 'TND',
-      decimalDigits: 3,
-    );
-    final absolute = millimes.abs();
-    final wholeDinars = absolute ~/ millimesPerDinar;
-    final fraction = (absolute % millimesPerDinar).toString().padLeft(3, '0');
-    final zeroFraction = '${formatter.symbols.DECIMAL_SEP}000';
-    final formattedWhole = formatter.format(wholeDinars);
-    final fractionIndex = formattedWhole.lastIndexOf(zeroFraction);
-    final exact = formattedWhole.replaceRange(
-      fractionIndex,
-      fractionIndex + zeroFraction.length,
-      '${formatter.symbols.DECIMAL_SEP}$fraction',
-    );
-    return millimes < 0 ? '${formatter.symbols.MINUS_SIGN}$exact' : exact;
-  }
+  String formatMillimes({String locale = 'fr_TN', required String unit}) =>
+      '${NumberFormat.decimalPattern(locale).format(millimes)} $unit';
 }
 
 const int millimesPerDinar = 1000;
+
+Money? parseMillimes(String value) {
+  final normalized = value.trim();
+  if (!RegExp(r'^\d+$').hasMatch(normalized)) return null;
+  return Money(int.parse(normalized));
+}
 
 Money sumMoney(Iterable<Money> amounts) =>
     amounts.fold(const Money.zero(), (total, amount) => total + amount);

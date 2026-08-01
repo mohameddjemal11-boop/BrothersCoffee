@@ -2,9 +2,15 @@ import 'package:brothers_coffee_pos/app/app.dart';
 import 'package:brothers_coffee_pos/core/money.dart';
 import 'package:brothers_coffee_pos/domain/entities/account.dart';
 import 'package:brothers_coffee_pos/domain/entities/catalog.dart';
+import 'package:brothers_coffee_pos/domain/entities/business_day.dart';
+import 'package:brothers_coffee_pos/domain/entities/report.dart';
 import 'package:brothers_coffee_pos/domain/entities/enums.dart';
 import 'package:brothers_coffee_pos/domain/repositories/account_repository.dart';
 import 'package:brothers_coffee_pos/domain/repositories/catalog_repositories.dart';
+import 'package:brothers_coffee_pos/domain/repositories/business_day_repository.dart';
+import 'package:brothers_coffee_pos/domain/entities/sale.dart';
+import 'package:brothers_coffee_pos/domain/repositories/sale_repository.dart';
+import 'package:brothers_coffee_pos/domain/repositories/report_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -14,12 +20,41 @@ void main() {
         accounts: FakeAccounts(),
         categories: FakeCategories(),
         products: FakeProducts(),
+        sales: FakeSales(),
+        businessDays: FakeBusinessDays(),
+        reports: FakeBusinessDays(),
       ),
     );
     await tester.pumpAndSettle();
     expect(find.text('Configurer le responsable'), findsOneWidget);
     expect(find.text('Continuer'), findsOneWidget);
   });
+}
+
+class FakeBusinessDays implements BusinessDayRepository, ReportRepository {
+  @override
+  Future<BusinessDayRecord> closeOpenDay({
+    required String accountId,
+    Money? countedCash,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<BusinessDayRecord?> getOpenDay({required String accountId}) async =>
+      null;
+
+  @override
+  Future<BusinessDayRecord> reopenDay({
+    required String managerAccountId,
+    required String businessDayId,
+    required String reason,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<SalesReport> buildSalesReport({
+    required String managerAccountId,
+    required String startDate,
+    required String endDate,
+  }) => throw UnimplementedError();
 }
 
 class FakeAccounts implements AccountRepository {
@@ -103,4 +138,25 @@ class FakeProducts implements ProductRepository {
     Money? price,
     String? imageRef,
   }) => throw UnimplementedError();
+}
+
+class FakeSales implements SaleRepository {
+  @override
+  Future<SaleRecord> cancelSale({
+    required String managerAccountId,
+    required String saleId,
+    required String reason,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<SaleRecord> confirmCashSale({
+    required String accountId,
+    required List<SaleDraftLine> lines,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<List<SaleRecord>> listForBusinessDate({
+    required String managerAccountId,
+    required String businessDate,
+  }) async => const [];
 }

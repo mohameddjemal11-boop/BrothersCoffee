@@ -20,10 +20,15 @@ void main() {
       ..add(product)
       ..add(product);
     expect(basket.lines.single.quantity, 2);
+    expect(basket.draftLines.single.productId, product.id);
+    expect(basket.draftLines.single.quantity, 2);
     expect(basket.total.millimes, 3500);
     basket.decrement(product);
     expect(basket.total.millimes, 1750);
     basket.remove(product.id);
     expect(basket.total, const Money.zero());
+    basket.add(product);
+    basket.clear();
+    expect(basket.isEmpty, isTrue);
   });
 }

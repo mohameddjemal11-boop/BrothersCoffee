@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/theme/app_theme.dart';
+import '../../../core/business_date.dart';
 import '../../../domain/entities/account.dart';
 import '../../../domain/entities/catalog.dart';
 import '../../../domain/entities/enums.dart';
+import '../../../domain/entities/sale.dart';
 import '../../../domain/repositories/catalog_repositories.dart';
+import '../../../domain/repositories/business_day_repository.dart';
+import '../../../domain/repositories/report_repository.dart';
+import '../../../domain/repositories/sale_repository.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../catalog/presentation/catalog_admin_screen.dart';
+import '../../day_close/presentation/day_close_dialog.dart';
+import '../../reports/presentation/reports_screen.dart';
+import '../../sales/presentation/sales_history_screen.dart';
 import 'basket_controller.dart';
 
 class PosShellScreen extends StatefulWidget {
@@ -15,11 +23,17 @@ class PosShellScreen extends StatefulWidget {
     required this.account,
     required this.categories,
     required this.products,
+    required this.sales,
+    required this.businessDays,
+    required this.reports,
     required this.onSwitchUser,
   });
   final Account account;
   final CategoryRepository categories;
   final ProductRepository products;
+  final SaleRepository sales;
+  final BusinessDayRepository businessDays;
+  final ReportRepository reports;
   final VoidCallback onSwitchUser;
   @override
   State<PosShellScreen> createState() => _PosShellScreenState();
@@ -28,6 +42,7 @@ class PosShellScreen extends StatefulWidget {
 class _PosShellScreenState extends State<PosShellScreen> {
   final BasketController _basket = BasketController();
   String? _categoryId;
+  bool _confirming = false;
   Future<void> _manage() async {
     await Navigator.of(context).push(
       MaterialPageRoute(
@@ -38,6 +53,101 @@ class _PosShellScreenState extends State<PosShellScreen> {
       ),
     );
     if (mounted) setState(() {});
+  }
+
+  Future<void> _openHistory() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            SalesHistoryScreen(manager: widget.account, sales: widget.sales),
+      ),
+    );
+  }
+
+  Future<void> _closeDay() async {
+    await showDayCloseDialog(
+      context: context,
+      account: widget.account,
+      businessDays: widget.businessDays,
+    );
+  }
+
+  Future<void> _openReports() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ReportsScreen(
+          manager: widget.account,
+          businessDays: widget.businessDays,
+          reports: widget.reports,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmSale() async {
+    if (_confirming || _basket.isEmpty) return;
+    setState(() => _confirming = true);
+    try {
+      final sale = await widget.sales.confirmCashSale(
+        accountId: widget.account.id,
+        lines: _basket.draftLines,
+      );
+      if (!mounted) return;
+      _basket.clear();
+      setState(() => _confirming = false);
+      await showDialog<void>(
+        context: context,
+        builder: (context) {
+          final l10n = AppLocalizations.of(context);
+          return AlertDialog(
+            icon: const Icon(Icons.check_circle_outline, size: 46),
+            title: Text(l10n.saleConfirmedTitle),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(l10n.saleNumber),
+                const SizedBox(height: 6),
+                Text(
+                  saleReference(sale.businessDate, sale.displayNumber),
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  sale.total.formatMillimes(
+                    locale: Localizations.localeOf(context).toString(),
+                    unit: l10n.millimesUnit,
+                  ),
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+              ],
+            ),
+            actions: [
+              FilledButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(l10n.close),
+              ),
+            ],
+          );
+        },
+      );
+    } catch (error) {
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context);
+      final message = switch (error) {
+        SaleFailure(code: SaleFailureCode.previousBusinessDayOpen) =>
+          l10n.previousDayOpenError,
+        SaleFailure(code: SaleFailureCode.businessDayClosed) =>
+          l10n.businessDayClosedError,
+        SaleFailure(code: SaleFailureCode.unavailableProduct) =>
+          l10n.unavailableProductError,
+        _ => l10n.saleConfirmationError,
+      };
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      if (mounted && _confirming) setState(() => _confirming = false);
+    }
   }
 
   @override
@@ -62,6 +172,9 @@ class _PosShellScreenState extends State<PosShellScreen> {
                   account: widget.account,
                   landscape: landscape,
                   onManage: _manage,
+                  onHistory: _openHistory,
+                  onCloseDay: _closeDay,
+                  onReports: _openReports,
                   onSwitchUser: widget.onSwitchUser,
                 ),
                 const SizedBox(height: 16),
@@ -86,7 +199,11 @@ class _PosShellScreenState extends State<PosShellScreen> {
                             const SizedBox(width: 16),
                             SizedBox(
                               width: 360,
-                              child: _BasketPane(basket: _basket),
+                              child: _BasketPane(
+                                basket: _basket,
+                                confirming: _confirming,
+                                onConfirm: _confirmSale,
+                              ),
                             ),
                           ],
                         )
@@ -108,7 +225,11 @@ class _PosShellScreenState extends State<PosShellScreen> {
                             const SizedBox(height: 12),
                             SizedBox(
                               height: 245,
-                              child: _BasketPane(basket: _basket),
+                              child: _BasketPane(
+                                basket: _basket,
+                                confirming: _confirming,
+                                onConfirm: _confirmSale,
+                              ),
                             ),
                           ],
                         ),
@@ -129,11 +250,14 @@ class _TopBar extends StatelessWidget {
     required this.account,
     required this.landscape,
     required this.onManage,
+    required this.onHistory,
+    required this.onCloseDay,
+    required this.onReports,
     required this.onSwitchUser,
   });
   final Account account;
   final bool landscape;
-  final VoidCallback onManage, onSwitchUser;
+  final VoidCallback onManage, onHistory, onCloseDay, onReports, onSwitchUser;
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
@@ -169,7 +293,25 @@ class _TopBar extends StatelessWidget {
           icon: const Icon(Icons.switch_account_outlined),
           label: Text(landscape ? l.changeUser : l.switchLabel),
         ),
+        const SizedBox(width: 8),
+        IconButton.filledTonal(
+          tooltip: l.closeBusinessDay,
+          onPressed: onCloseDay,
+          icon: const Icon(Icons.point_of_sale_outlined),
+        ),
         if (account.role == AccountRole.manager) ...[
+          const SizedBox(width: 8),
+          IconButton.filledTonal(
+            tooltip: l.salesHistory,
+            onPressed: onHistory,
+            icon: const Icon(Icons.receipt_long_outlined),
+          ),
+          const SizedBox(width: 8),
+          IconButton.filledTonal(
+            tooltip: l.reports,
+            onPressed: onReports,
+            icon: const Icon(Icons.assessment_outlined),
+          ),
           const SizedBox(width: 8),
           IconButton.filledTonal(
             tooltip: l.management,
@@ -289,10 +431,11 @@ class _CatalogPane extends StatelessWidget {
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            product.price.format(
+                                            product.price.formatMillimes(
                                               locale: Localizations.localeOf(
                                                 context,
                                               ).toString(),
+                                              unit: l.millimesUnit,
                                             ),
                                             style: Theme.of(
                                               context,
@@ -359,8 +502,14 @@ class _CatalogEmpty extends StatelessWidget {
 }
 
 class _BasketPane extends StatelessWidget {
-  const _BasketPane({required this.basket});
+  const _BasketPane({
+    required this.basket,
+    required this.confirming,
+    required this.onConfirm,
+  });
   final BasketController basket;
+  final bool confirming;
+  final VoidCallback onConfirm;
 
   @override
   Widget build(BuildContext context) {
@@ -420,19 +569,32 @@ class _BasketPane extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(l.total, style: Theme.of(context).textTheme.titleMedium),
-                  Text(
-                    basket.total.format(
-                      locale: Localizations.localeOf(context).toString(),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: Text(
+                        basket.total.formatMillimes(
+                          locale: Localizations.localeOf(context).toString(),
+                          unit: l.millimesUnit,
+                        ),
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
                     ),
-                    style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ],
               ),
               const SizedBox(height: 10),
               FilledButton.icon(
-                onPressed: null,
-                icon: const Icon(Icons.check_circle_outline_rounded),
-                label: Text(l.confirmSale),
+                onPressed: basket.isEmpty || confirming ? null : onConfirm,
+                icon: confirming
+                    ? const SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.check_circle_outline_rounded),
+                label: Text(confirming ? l.processing : l.confirmSale),
               ),
             ],
           ),

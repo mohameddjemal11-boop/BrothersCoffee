@@ -132,8 +132,186 @@ class AppLocalizationsAr extends AppLocalizations {
   String get save => 'حفظ';
 
   @override
-  String get priceHint => 'السعر بالدينار (مثال 4,500)';
+  String get priceHint => 'السعر بالمليم (مثال 4500)';
 
   @override
-  String get invalidPrice => 'أدخل سعرًا صالحًا بالدينار.';
+  String get invalidPrice => 'أدخل عددًا صحيحًا من المليمات.';
+
+  @override
+  String get saleConfirmedTitle => 'تم تأكيد البيع';
+
+  @override
+  String get saleNumber => 'رقم البيع';
+
+  @override
+  String get close => 'إغلاق';
+
+  @override
+  String get saleConfirmationError => 'تعذر تسجيل عملية البيع.';
+
+  @override
+  String get previousDayOpenError => 'يجب إغلاق اليوم السابق قبل المتابعة.';
+
+  @override
+  String get unavailableProductError => 'أحد منتجات الطلب لم يعد متاحًا.';
+
+  @override
+  String get salesHistory => 'سجل المبيعات';
+
+  @override
+  String get noSalesToday => 'لا توجد مبيعات مسجلة اليوم.';
+
+  @override
+  String get confirmedStatus => 'مؤكدة';
+
+  @override
+  String get cancelledStatus => 'ملغاة';
+
+  @override
+  String get soldBy => 'سجلها';
+
+  @override
+  String get saleDetails => 'تفاصيل البيع';
+
+  @override
+  String get cancelSale => 'إلغاء البيع';
+
+  @override
+  String get cancellationReason => 'سبب الإلغاء';
+
+  @override
+  String get reasonRequired => 'السبب مطلوب.';
+
+  @override
+  String get confirmCancellation => 'تأكيد الإلغاء';
+
+  @override
+  String get cancellationFailed => 'تعذر إلغاء البيع.';
+
+  @override
+  String get historyLoadError => 'تعذر تحميل سجل المبيعات.';
+
+  @override
+  String get processing => 'جارٍ التسجيل…';
+
+  @override
+  String get closeBusinessDay => 'إغلاق يوم العمل';
+
+  @override
+  String get dayLoadError => 'تعذر تحميل يوم العمل الحالي.';
+
+  @override
+  String get noOpenDay => 'لا يوجد يوم عمل مفتوح. سيفتح عند أول عملية بيع.';
+
+  @override
+  String closeDayMessage(String date) {
+    return 'هل تريد إغلاق يوم العمل $date؟';
+  }
+
+  @override
+  String get expectedCash => 'النقد المتوقع';
+
+  @override
+  String get countedCashOptional => 'النقد المعدود بالمليم (اختياري)';
+
+  @override
+  String get cashAmountHint => 'مثال 125500';
+
+  @override
+  String get invalidCashAmount => 'أدخل عددًا صحيحًا من المليمات.';
+
+  @override
+  String get confirmCloseDay => 'تأكيد الإغلاق';
+
+  @override
+  String get dayClosedSuccess => 'تم إغلاق يوم العمل.';
+
+  @override
+  String get dayCloseFailed => 'تعذر إغلاق يوم العمل.';
+
+  @override
+  String get reports => 'التقارير';
+
+  @override
+  String get refresh => 'تحديث';
+
+  @override
+  String get reportLoadError => 'تعذر تحميل التقرير.';
+
+  @override
+  String dateRange(String start, String end) {
+    return 'من $start إلى $end';
+  }
+
+  @override
+  String get grossSales => 'إجمالي المبيعات';
+
+  @override
+  String get cancellations => 'الإلغاءات';
+
+  @override
+  String get netSales => 'صافي المبيعات';
+
+  @override
+  String get saleCount => 'عدد المبيعات';
+
+  @override
+  String get businessDays => 'أيام العمل';
+
+  @override
+  String get noReportData => 'لا توجد بيانات لهذه الفترة.';
+
+  @override
+  String get byProduct => 'حسب المنتج';
+
+  @override
+  String get byCategory => 'حسب الفئة';
+
+  @override
+  String get byEmployee => 'حسب الموظف';
+
+  @override
+  String get closedStatus => 'مغلق';
+
+  @override
+  String get openStatus => 'مفتوح';
+
+  @override
+  String get countedCash => 'النقد المعدود';
+
+  @override
+  String get variance => 'الفرق';
+
+  @override
+  String get reopenDay => 'إعادة فتح اليوم';
+
+  @override
+  String get reopenReason => 'سبب إعادة الفتح';
+
+  @override
+  String get confirmReopen => 'تأكيد إعادة الفتح';
+
+  @override
+  String get dayReopened => 'تمت إعادة فتح يوم العمل.';
+
+  @override
+  String get anotherDayOpen => 'يوجد يوم عمل آخر مفتوح بالفعل.';
+
+  @override
+  String get dayReopenFailed => 'تعذرت إعادة فتح اليوم.';
+
+  @override
+  String quantityValue(int quantity) {
+    return 'الكمية: $quantity';
+  }
+
+  @override
+  String get unknownLabel => 'غير محدد';
+
+  @override
+  String get businessDayClosedError =>
+      'يوم العمل مغلق. يجب على المسؤول إعادة فتحه قبل تسجيل بيع جديد.';
+
+  @override
+  String get millimesUnit => 'مليم';
 }

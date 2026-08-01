@@ -19,6 +19,9 @@ enum AuditEventType {
   productCreated,
   productUpdated,
   productArchived,
+  saleConfirmed,
   saleCancelled,
+  businessDayClosed,
+  businessDayReopened,
   timeZoneChanged,
 }
