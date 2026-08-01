@@ -278,18 +278,45 @@ class DriftBusinessDayRepository
       final lines = await (_database.select(
         _database.saleLines,
       )..where((row) => row.saleId.isIn(confirmedSales.keys))).get();
+      final productIds = lines.map((line) => line.productId).toSet();
+      final categoryIds = lines
+          .map((line) => line.categoryIdSnapshot)
+          .whereType<String>()
+          .toSet();
+      final productRows = productIds.isEmpty
+          ? const <Product>[]
+          : await (_database.select(
+              _database.products,
+            )..where((row) => row.id.isIn(productIds))).get();
+      final categoryRows = categoryIds.isEmpty
+          ? const <Category>[]
+          : await (_database.select(
+              _database.categories,
+            )..where((row) => row.id.isIn(categoryIds))).get();
+      final productNames = {
+        for (final product in productRows) product.id: product.name,
+      };
+      final categoryNames = {
+        for (final category in categoryRows) category.id: category.name,
+      };
       for (final line in lines) {
         productTotals
             .putIfAbsent(
               line.productId,
-              () => _Aggregate(line.productNameSnapshot),
+              () => _Aggregate(
+                productNames[line.productId] ?? line.productNameSnapshot,
+              ),
             )
             .add(line.quantity, line.lineTotalMillimes);
         final categoryId = line.categoryIdSnapshot ?? '';
         categoryTotals
             .putIfAbsent(
               categoryId,
-              () => _Aggregate(line.categoryNameSnapshot ?? ''),
+              () => _Aggregate(
+                categoryNames[line.categoryIdSnapshot] ??
+                    line.categoryNameSnapshot ??
+                    '',
+              ),
             )
             .add(line.quantity, line.lineTotalMillimes);
       }
