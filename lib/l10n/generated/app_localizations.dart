@@ -347,13 +347,13 @@ abstract class AppLocalizations {
   /// No description provided for @priceHint.
   ///
   /// In fr, this message translates to:
-  /// **'Prix TND (ex. 4,500)'**
+  /// **'Prix en millimes (ex. 4500)'**
   String get priceHint;
 
   /// No description provided for @invalidPrice.
   ///
   /// In fr, this message translates to:
-  /// **'Saisissez un prix valide en TND.'**
+  /// **'Saisissez un nombre entier de millimes.'**
   String get invalidPrice;
 
   /// No description provided for @saleConfirmedTitle.
@@ -469,6 +469,234 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Enregistrement…'**
   String get processing;
+
+  /// No description provided for @closeBusinessDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clôturer la journée'**
+  String get closeBusinessDay;
+
+  /// No description provided for @dayLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger la journée en cours.'**
+  String get dayLoadError;
+
+  /// No description provided for @noOpenDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune journée n’est ouverte. Elle s’ouvrira à la première vente.'**
+  String get noOpenDay;
+
+  /// No description provided for @closeDayMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clôturer la journée du {date} ?'**
+  String closeDayMessage(String date);
+
+  /// No description provided for @expectedCash.
+  ///
+  /// In fr, this message translates to:
+  /// **'Espèces attendues'**
+  String get expectedCash;
+
+  /// No description provided for @countedCashOptional.
+  ///
+  /// In fr, this message translates to:
+  /// **'Espèces comptées en millimes (facultatif)'**
+  String get countedCashOptional;
+
+  /// No description provided for @cashAmountHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex. 125500'**
+  String get cashAmountHint;
+
+  /// No description provided for @invalidCashAmount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisissez un nombre entier de millimes.'**
+  String get invalidCashAmount;
+
+  /// No description provided for @confirmCloseDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer la clôture'**
+  String get confirmCloseDay;
+
+  /// No description provided for @dayClosedSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'La journée a été clôturée.'**
+  String get dayClosedSuccess;
+
+  /// No description provided for @dayCloseFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'La clôture de la journée a échoué.'**
+  String get dayCloseFailed;
+
+  /// No description provided for @reports.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rapports'**
+  String get reports;
+
+  /// No description provided for @refresh.
+  ///
+  /// In fr, this message translates to:
+  /// **'Actualiser'**
+  String get refresh;
+
+  /// No description provided for @reportLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger le rapport.'**
+  String get reportLoadError;
+
+  /// No description provided for @dateRange.
+  ///
+  /// In fr, this message translates to:
+  /// **'Du {start} au {end}'**
+  String dateRange(String start, String end);
+
+  /// No description provided for @grossSales.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ventes brutes'**
+  String get grossSales;
+
+  /// No description provided for @cancellations.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annulations'**
+  String get cancellations;
+
+  /// No description provided for @netSales.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ventes nettes'**
+  String get netSales;
+
+  /// No description provided for @saleCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nombre de ventes'**
+  String get saleCount;
+
+  /// No description provided for @businessDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'Journées commerciales'**
+  String get businessDays;
+
+  /// No description provided for @noReportData.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune donnée pour cette période.'**
+  String get noReportData;
+
+  /// No description provided for @byProduct.
+  ///
+  /// In fr, this message translates to:
+  /// **'Par produit'**
+  String get byProduct;
+
+  /// No description provided for @byCategory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Par catégorie'**
+  String get byCategory;
+
+  /// No description provided for @byEmployee.
+  ///
+  /// In fr, this message translates to:
+  /// **'Par employé'**
+  String get byEmployee;
+
+  /// No description provided for @closedStatus.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clôturée'**
+  String get closedStatus;
+
+  /// No description provided for @openStatus.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouverte'**
+  String get openStatus;
+
+  /// No description provided for @countedCash.
+  ///
+  /// In fr, this message translates to:
+  /// **'Espèces comptées'**
+  String get countedCash;
+
+  /// No description provided for @variance.
+  ///
+  /// In fr, this message translates to:
+  /// **'Écart'**
+  String get variance;
+
+  /// No description provided for @reopenDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rouvrir la journée'**
+  String get reopenDay;
+
+  /// No description provided for @reopenReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif de la réouverture'**
+  String get reopenReason;
+
+  /// No description provided for @confirmReopen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer la réouverture'**
+  String get confirmReopen;
+
+  /// No description provided for @dayReopened.
+  ///
+  /// In fr, this message translates to:
+  /// **'La journée a été rouverte.'**
+  String get dayReopened;
+
+  /// No description provided for @anotherDayOpen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une autre journée est déjà ouverte.'**
+  String get anotherDayOpen;
+
+  /// No description provided for @dayReopenFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'La réouverture a échoué.'**
+  String get dayReopenFailed;
+
+  /// No description provided for @quantityValue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quantité : {quantity}'**
+  String quantityValue(int quantity);
+
+  /// No description provided for @unknownLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non renseigné'**
+  String get unknownLabel;
+
+  /// No description provided for @businessDayClosedError.
+  ///
+  /// In fr, this message translates to:
+  /// **'La journée est clôturée. Un responsable doit la rouvrir avant une nouvelle vente.'**
+  String get businessDayClosedError;
+
+  /// No description provided for @millimesUnit.
+  ///
+  /// In fr, this message translates to:
+  /// **'millimes'**
+  String get millimesUnit;
 }
 
 class _AppLocalizationsDelegate

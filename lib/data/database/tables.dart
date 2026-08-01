@@ -99,6 +99,11 @@ class BusinessDays extends Table {
 
   @override
   Set<Column<Object>> get primaryKey => {id};
+
+  @override
+  List<Set<Column<Object>>> get uniqueKeys => [
+    {businessDate},
+  ];
 }
 
 @TableIndex(
@@ -177,6 +182,8 @@ class SaleLines extends Table {
   TextColumn get productId =>
       text().references(Products, #id, onDelete: KeyAction.restrict)();
   TextColumn get productNameSnapshot => text().withLength(min: 1, max: 120)();
+  TextColumn get categoryIdSnapshot => text().nullable()();
+  TextColumn get categoryNameSnapshot => text().nullable()();
   IntColumn get unitPriceMillimes =>
       integer().check(unitPriceMillimes.isBiggerOrEqualValue(0))();
   IntColumn get quantity => integer().check(quantity.isBiggerThanValue(0))();

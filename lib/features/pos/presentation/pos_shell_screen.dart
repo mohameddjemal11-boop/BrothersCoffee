@@ -7,9 +7,13 @@ import '../../../domain/entities/catalog.dart';
 import '../../../domain/entities/enums.dart';
 import '../../../domain/entities/sale.dart';
 import '../../../domain/repositories/catalog_repositories.dart';
+import '../../../domain/repositories/business_day_repository.dart';
+import '../../../domain/repositories/report_repository.dart';
 import '../../../domain/repositories/sale_repository.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../catalog/presentation/catalog_admin_screen.dart';
+import '../../day_close/presentation/day_close_dialog.dart';
+import '../../reports/presentation/reports_screen.dart';
 import '../../sales/presentation/sales_history_screen.dart';
 import 'basket_controller.dart';
 
@@ -20,12 +24,16 @@ class PosShellScreen extends StatefulWidget {
     required this.categories,
     required this.products,
     required this.sales,
+    required this.businessDays,
+    required this.reports,
     required this.onSwitchUser,
   });
   final Account account;
   final CategoryRepository categories;
   final ProductRepository products;
   final SaleRepository sales;
+  final BusinessDayRepository businessDays;
+  final ReportRepository reports;
   final VoidCallback onSwitchUser;
   @override
   State<PosShellScreen> createState() => _PosShellScreenState();
@@ -52,6 +60,26 @@ class _PosShellScreenState extends State<PosShellScreen> {
       MaterialPageRoute(
         builder: (_) =>
             SalesHistoryScreen(manager: widget.account, sales: widget.sales),
+      ),
+    );
+  }
+
+  Future<void> _closeDay() async {
+    await showDayCloseDialog(
+      context: context,
+      account: widget.account,
+      businessDays: widget.businessDays,
+    );
+  }
+
+  Future<void> _openReports() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ReportsScreen(
+          manager: widget.account,
+          businessDays: widget.businessDays,
+          reports: widget.reports,
+        ),
       ),
     );
   }
@@ -85,8 +113,9 @@ class _PosShellScreenState extends State<PosShellScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  sale.total.format(
+                  sale.total.formatMillimes(
                     locale: Localizations.localeOf(context).toString(),
+                    unit: l10n.millimesUnit,
                   ),
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
@@ -107,6 +136,8 @@ class _PosShellScreenState extends State<PosShellScreen> {
       final message = switch (error) {
         SaleFailure(code: SaleFailureCode.previousBusinessDayOpen) =>
           l10n.previousDayOpenError,
+        SaleFailure(code: SaleFailureCode.businessDayClosed) =>
+          l10n.businessDayClosedError,
         SaleFailure(code: SaleFailureCode.unavailableProduct) =>
           l10n.unavailableProductError,
         _ => l10n.saleConfirmationError,
@@ -142,6 +173,8 @@ class _PosShellScreenState extends State<PosShellScreen> {
                   landscape: landscape,
                   onManage: _manage,
                   onHistory: _openHistory,
+                  onCloseDay: _closeDay,
+                  onReports: _openReports,
                   onSwitchUser: widget.onSwitchUser,
                 ),
                 const SizedBox(height: 16),
@@ -218,11 +251,13 @@ class _TopBar extends StatelessWidget {
     required this.landscape,
     required this.onManage,
     required this.onHistory,
+    required this.onCloseDay,
+    required this.onReports,
     required this.onSwitchUser,
   });
   final Account account;
   final bool landscape;
-  final VoidCallback onManage, onHistory, onSwitchUser;
+  final VoidCallback onManage, onHistory, onCloseDay, onReports, onSwitchUser;
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
@@ -258,12 +293,24 @@ class _TopBar extends StatelessWidget {
           icon: const Icon(Icons.switch_account_outlined),
           label: Text(landscape ? l.changeUser : l.switchLabel),
         ),
+        const SizedBox(width: 8),
+        IconButton.filledTonal(
+          tooltip: l.closeBusinessDay,
+          onPressed: onCloseDay,
+          icon: const Icon(Icons.point_of_sale_outlined),
+        ),
         if (account.role == AccountRole.manager) ...[
           const SizedBox(width: 8),
           IconButton.filledTonal(
             tooltip: l.salesHistory,
             onPressed: onHistory,
             icon: const Icon(Icons.receipt_long_outlined),
+          ),
+          const SizedBox(width: 8),
+          IconButton.filledTonal(
+            tooltip: l.reports,
+            onPressed: onReports,
+            icon: const Icon(Icons.assessment_outlined),
           ),
           const SizedBox(width: 8),
           IconButton.filledTonal(
@@ -384,10 +431,11 @@ class _CatalogPane extends StatelessWidget {
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            product.price.format(
+                                            product.price.formatMillimes(
                                               locale: Localizations.localeOf(
                                                 context,
                                               ).toString(),
+                                              unit: l.millimesUnit,
                                             ),
                                             style: Theme.of(
                                               context,
@@ -521,11 +569,19 @@ class _BasketPane extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(l.total, style: Theme.of(context).textTheme.titleMedium),
-                  Text(
-                    basket.total.format(
-                      locale: Localizations.localeOf(context).toString(),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: Text(
+                        basket.total.formatMillimes(
+                          locale: Localizations.localeOf(context).toString(),
+                          unit: l.millimesUnit,
+                        ),
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
                     ),
-                    style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ],
               ),

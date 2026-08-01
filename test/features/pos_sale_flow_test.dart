@@ -3,11 +3,15 @@ import 'dart:async';
 import 'package:brothers_coffee_pos/app/theme/app_theme.dart';
 import 'package:brothers_coffee_pos/core/money.dart';
 import 'package:brothers_coffee_pos/domain/entities/account.dart';
+import 'package:brothers_coffee_pos/domain/entities/business_day.dart';
 import 'package:brothers_coffee_pos/domain/entities/catalog.dart';
 import 'package:brothers_coffee_pos/domain/entities/enums.dart';
 import 'package:brothers_coffee_pos/domain/entities/sale.dart';
+import 'package:brothers_coffee_pos/domain/entities/report.dart';
+import 'package:brothers_coffee_pos/domain/repositories/business_day_repository.dart';
 import 'package:brothers_coffee_pos/domain/repositories/catalog_repositories.dart';
 import 'package:brothers_coffee_pos/domain/repositories/sale_repository.dart';
+import 'package:brothers_coffee_pos/domain/repositories/report_repository.dart';
 import 'package:brothers_coffee_pos/features/pos/presentation/pos_shell_screen.dart';
 import 'package:brothers_coffee_pos/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -41,6 +45,7 @@ void main() {
       revision: 1,
     );
     final sales = _RecordingSales();
+    final businessDays = _BusinessDays();
 
     await tester.pumpWidget(
       MaterialApp(
@@ -61,6 +66,8 @@ void main() {
           categories: _Categories(category),
           products: _Products(product),
           sales: sales,
+          businessDays: businessDays,
+          reports: businessDays,
           onSwitchUser: () {},
         ),
       ),
@@ -98,10 +105,38 @@ void main() {
 
     expect(find.text('Vente confirmée'), findsOneWidget);
     expect(find.text('V-20260801-001'), findsOneWidget);
+    expect(find.textContaining('millimes'), findsWidgets);
+    expect(find.textContaining('TND'), findsNothing);
     await tester.tap(find.text('Fermer'));
     await tester.pumpAndSettle();
     expect(find.text('Touchez un produit pour l’ajouter'), findsOneWidget);
   });
+}
+
+class _BusinessDays implements BusinessDayRepository, ReportRepository {
+  @override
+  Future<BusinessDayRecord> closeOpenDay({
+    required String accountId,
+    Money? countedCash,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<BusinessDayRecord?> getOpenDay({required String accountId}) async =>
+      null;
+
+  @override
+  Future<BusinessDayRecord> reopenDay({
+    required String managerAccountId,
+    required String businessDayId,
+    required String reason,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<SalesReport> buildSalesReport({
+    required String managerAccountId,
+    required String startDate,
+    required String endDate,
+  }) => throw UnimplementedError();
 }
 
 class _RecordingSales implements SaleRepository {

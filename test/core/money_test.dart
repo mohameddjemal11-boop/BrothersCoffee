@@ -13,21 +13,34 @@ void main() {
     );
   });
 
-  test('formats TND with three fractional digits', () {
-    final formatted = const Money(1234).format(locale: 'fr_TN');
+  test('formats UI amounts directly as integer millimes', () {
+    final formatted = const Money(
+      1234,
+    ).formatMillimes(locale: 'en_US', unit: 'millimes');
 
-    expect(formatted, contains('1,234'));
-    expect(formatted, contains('TND'));
+    expect(formatted, '1,234 millimes');
   });
 
   test(
     'formats large and negative values without floating-point conversion',
     () {
-      expect(const Money(-5).format(locale: 'fr_TN'), contains('-0,005'));
       expect(
-        const Money(9007199254740993).format(locale: 'en_US'),
-        contains('9,007,199,254,740.993'),
+        const Money(-5).formatMillimes(locale: 'en_US', unit: 'millimes'),
+        '-5 millimes',
+      );
+      expect(
+        const Money(
+          9007199254740993,
+        ).formatMillimes(locale: 'en_US', unit: 'millimes'),
+        '9,007,199,254,740,993 millimes',
       );
     },
   );
+
+  test('parses only integer millime input', () {
+    expect(parseMillimes('1500'), const Money(1500));
+    expect(parseMillimes(' 1500 '), const Money(1500));
+    expect(parseMillimes('1.5'), isNull);
+    expect(parseMillimes('1,5'), isNull);
+  });
 }

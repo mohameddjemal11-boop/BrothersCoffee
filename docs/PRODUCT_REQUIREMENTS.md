@@ -48,7 +48,7 @@ Accounts are local only. PINs must never be stored in clear text; persist a salt
 
 1. Select a category and product.
 2. Add, remove, and change quantities while the basket is in `draft` state.
-3. Show total in TND, calculated from integer millimes.
+3. Show the total directly as an integer number of millimes.
 4. Confirm cash sale. In one database transaction, assign a UUID and next business-day display number, persist sale and lines, mark status `confirmed`, and clear the basket.
 5. A confirmed sale is immutable. Corrections are made only by manager cancellation, never by editing historic lines.
 
@@ -93,7 +93,7 @@ Accounts are local only. PINs must never be stored in clear text; persist a salt
 
 - Default language is French. All UI strings are localized through Flutter localization resources, not embedded in widgets.
 - Arabic translation is supported by resource structure from the start. RTL layout uses directional padding/alignment/icons and is tested in Arabic; do not assume left-to-right ordering.
-- Currency is displayed as TND from millimes using locale-aware formatting while calculations remain integer based.
+- All monetary values are displayed and entered directly as integer millimes; locale-aware digit grouping may be used without decimal conversion.
 - Portrait prioritizes product grid plus bottom/side basket; landscape uses persistent catalogue and basket panes. Core confirm/cancel/close actions remain usable at common tablet sizes and with touch targets.
 - Empty, error, confirmation, and destructive actions require clear French copy; cancellation, reopening, and restore require explicit confirmation.
 

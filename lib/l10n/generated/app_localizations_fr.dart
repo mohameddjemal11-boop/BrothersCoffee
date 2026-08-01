@@ -135,10 +135,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get save => 'Enregistrer';
 
   @override
-  String get priceHint => 'Prix TND (ex. 4,500)';
+  String get priceHint => 'Prix en millimes (ex. 4500)';
 
   @override
-  String get invalidPrice => 'Saisissez un prix valide en TND.';
+  String get invalidPrice => 'Saisissez un nombre entier de millimes.';
 
   @override
   String get saleConfirmedTitle => 'Vente confirmée';
@@ -198,4 +198,126 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get processing => 'Enregistrement…';
+
+  @override
+  String get closeBusinessDay => 'Clôturer la journée';
+
+  @override
+  String get dayLoadError => 'Impossible de charger la journée en cours.';
+
+  @override
+  String get noOpenDay =>
+      'Aucune journée n’est ouverte. Elle s’ouvrira à la première vente.';
+
+  @override
+  String closeDayMessage(String date) {
+    return 'Clôturer la journée du $date ?';
+  }
+
+  @override
+  String get expectedCash => 'Espèces attendues';
+
+  @override
+  String get countedCashOptional => 'Espèces comptées en millimes (facultatif)';
+
+  @override
+  String get cashAmountHint => 'Ex. 125500';
+
+  @override
+  String get invalidCashAmount => 'Saisissez un nombre entier de millimes.';
+
+  @override
+  String get confirmCloseDay => 'Confirmer la clôture';
+
+  @override
+  String get dayClosedSuccess => 'La journée a été clôturée.';
+
+  @override
+  String get dayCloseFailed => 'La clôture de la journée a échoué.';
+
+  @override
+  String get reports => 'Rapports';
+
+  @override
+  String get refresh => 'Actualiser';
+
+  @override
+  String get reportLoadError => 'Impossible de charger le rapport.';
+
+  @override
+  String dateRange(String start, String end) {
+    return 'Du $start au $end';
+  }
+
+  @override
+  String get grossSales => 'Ventes brutes';
+
+  @override
+  String get cancellations => 'Annulations';
+
+  @override
+  String get netSales => 'Ventes nettes';
+
+  @override
+  String get saleCount => 'Nombre de ventes';
+
+  @override
+  String get businessDays => 'Journées commerciales';
+
+  @override
+  String get noReportData => 'Aucune donnée pour cette période.';
+
+  @override
+  String get byProduct => 'Par produit';
+
+  @override
+  String get byCategory => 'Par catégorie';
+
+  @override
+  String get byEmployee => 'Par employé';
+
+  @override
+  String get closedStatus => 'Clôturée';
+
+  @override
+  String get openStatus => 'Ouverte';
+
+  @override
+  String get countedCash => 'Espèces comptées';
+
+  @override
+  String get variance => 'Écart';
+
+  @override
+  String get reopenDay => 'Rouvrir la journée';
+
+  @override
+  String get reopenReason => 'Motif de la réouverture';
+
+  @override
+  String get confirmReopen => 'Confirmer la réouverture';
+
+  @override
+  String get dayReopened => 'La journée a été rouverte.';
+
+  @override
+  String get anotherDayOpen => 'Une autre journée est déjà ouverte.';
+
+  @override
+  String get dayReopenFailed => 'La réouverture a échoué.';
+
+  @override
+  String quantityValue(int quantity) {
+    return 'Quantité : $quantity';
+  }
+
+  @override
+  String get unknownLabel => 'Non renseigné';
+
+  @override
+  String get businessDayClosedError =>
+      'La journée est clôturée. Un responsable doit la rouvrir avant une nouvelle vente.';
+
+  @override
+  String get millimesUnit => 'millimes';
 }

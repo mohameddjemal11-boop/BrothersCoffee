@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../app/app_controller.dart';
 import '../../../domain/entities/account.dart';
 import '../../../domain/repositories/catalog_repositories.dart';
+import '../../../domain/repositories/business_day_repository.dart';
+import '../../../domain/repositories/report_repository.dart';
 import '../../../domain/repositories/sale_repository.dart';
 import '../../../features/pos/presentation/pos_shell_screen.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -14,12 +16,16 @@ class AuthGate extends StatelessWidget {
     required this.categories,
     required this.products,
     required this.sales,
+    required this.businessDays,
+    required this.reports,
   });
 
   final AppController controller;
   final CategoryRepository categories;
   final ProductRepository products;
   final SaleRepository sales;
+  final BusinessDayRepository businessDays;
+  final ReportRepository reports;
 
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
@@ -40,6 +46,8 @@ class AuthGate extends StatelessWidget {
             categories: categories,
             products: products,
             sales: sales,
+            businessDays: businessDays,
+            reports: reports,
             onSwitchUser: controller.switchUser,
           );
       }

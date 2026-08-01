@@ -40,6 +40,16 @@ class DriftSaleRepository implements SaleRepository {
         nowUtc: nowUtc,
       );
       final productRows = await _loadProducts(lines);
+      final categoryRows = await (_database.select(
+        _database.categories,
+      )..where(
+        (row) => row.id.isIn(
+          productRows.values.map((product) => product.categoryId),
+        ),
+      )).get();
+      final categoriesById = {
+        for (final category in categoryRows) category.id: category,
+      };
       final total = lines.fold(
         const Money.zero(),
         (sum, line) =>
@@ -66,6 +76,7 @@ class DriftSaleRepository implements SaleRepository {
       for (var index = 0; index < lines.length; index++) {
         final draftLine = lines[index];
         final product = productRows[draftLine.productId]!;
+        final category = categoriesById[product.categoryId]!;
         final lineTotal = product.priceMillimes * draftLine.quantity;
         await _database
             .into(_database.saleLines)
@@ -75,6 +86,8 @@ class DriftSaleRepository implements SaleRepository {
                 saleId: saleId,
                 productId: product.id,
                 productNameSnapshot: product.name,
+                categoryIdSnapshot: Value(category.id),
+                categoryNameSnapshot: Value(category.name),
                 unitPriceMillimes: product.priceMillimes,
                 quantity: draftLine.quantity,
                 lineTotalMillimes: lineTotal,
@@ -238,6 +251,15 @@ class DriftSaleRepository implements SaleRepository {
         );
       }
       return openDay;
+    }
+
+    final existingDay = await (_database.select(
+      _database.businessDays,
+    )..where((row) => row.businessDate.equals(businessDate))).getSingleOrNull();
+    if (existingDay != null) {
+      throw const domain.SaleFailure(
+        domain.SaleFailureCode.businessDayClosed,
+      );
     }
 
     final dayId = _newId();

@@ -67,6 +67,7 @@ enum SaleFailureCode {
   inactiveAccount,
   unavailableProduct,
   previousBusinessDayOpen,
+  businessDayClosed,
   managerRequired,
   saleNotFound,
   saleNotCancellable,

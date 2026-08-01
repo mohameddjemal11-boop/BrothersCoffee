@@ -117,8 +117,9 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
                       '${cancelled ? l10n.cancelledStatus : l10n.confirmedStatus}',
                     ),
                     trailing: Text(
-                      sale.total.format(
+                      sale.total.formatMillimes(
                         locale: Localizations.localeOf(context).toString(),
+                        unit: l10n.millimesUnit,
                       ),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         decoration: cancelled
@@ -197,7 +198,12 @@ class _SaleDetailsDialog extends StatelessWidget {
                     children: [
                       Expanded(child: Text(line.productName)),
                       Text('${line.quantity} × '),
-                      Text(line.unitPrice.format(locale: locale)),
+                      Text(
+                        line.unitPrice.formatMillimes(
+                          locale: locale,
+                          unit: l10n.millimesUnit,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -208,7 +214,10 @@ class _SaleDetailsDialog extends StatelessWidget {
                 children: [
                   Text(l10n.total),
                   Text(
-                    sale.total.format(locale: locale),
+                    sale.total.formatMillimes(
+                      locale: locale,
+                      unit: l10n.millimesUnit,
+                    ),
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ],

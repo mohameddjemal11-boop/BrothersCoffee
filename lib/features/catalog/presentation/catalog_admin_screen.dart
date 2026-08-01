@@ -210,7 +210,7 @@ class _Products extends StatelessWidget {
                               child: ListTile(
                                 title: Text(product.name),
                                 subtitle: Text(
-                                  '${category?.name ?? ''} · ${product.price.format(locale: Localizations.localeOf(context).toString())}',
+                                  '${category?.name ?? ''} · ${product.price.formatMillimes(locale: Localizations.localeOf(context).toString(), unit: l.millimesUnit)}',
                                 ),
                                 trailing: IconButton(
                                   tooltip: l.archive,
@@ -308,9 +308,7 @@ Future<_NewProduct?> _productDialog(
                 const SizedBox(height: 12),
                 TextField(
                   controller: price,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
+                  keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     labelText: l.priceHint,
                     errorText: error,
@@ -326,7 +324,7 @@ Future<_NewProduct?> _productDialog(
             ),
             FilledButton(
               onPressed: () {
-                final millimes = _parseMillimes(price.text);
+                final millimes = parseMillimes(price.text)?.millimes;
                 if (name.text.trim().isEmpty || millimes == null) {
                   setState(() => error = l.invalidPrice);
                   return;
@@ -343,12 +341,4 @@ Future<_NewProduct?> _productDialog(
       );
     },
   );
-}
-
-int? _parseMillimes(String value) {
-  final normalized = value.trim().replaceAll(',', '.');
-  if (!RegExp(r'^\d+(\.\d{1,3})?$').hasMatch(normalized)) return null;
-  final parts = normalized.split('.');
-  return int.parse(parts.first) * millimesPerDinar +
-      (parts.length == 1 ? 0 : int.parse(parts[1].padRight(3, '0')));
 }
