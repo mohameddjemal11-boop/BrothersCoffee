@@ -1,0 +1,48 @@
+import 'package:flutter/material.dart';
+
+import '../domain/repositories/account_repository.dart';
+import '../domain/repositories/catalog_repositories.dart';
+import '../features/auth/presentation/auth_gate.dart';
+import '../l10n/generated/app_localizations.dart';
+import 'app_controller.dart';
+import 'theme/app_theme.dart';
+
+class BrothersCoffeeApp extends StatefulWidget {
+  const BrothersCoffeeApp({
+    super.key,
+    required this.accounts,
+    required this.categories,
+    required this.products,
+  });
+
+  final AccountRepository accounts;
+  final CategoryRepository categories;
+  final ProductRepository products;
+
+  @override
+  State<BrothersCoffeeApp> createState() => _BrothersCoffeeAppState();
+}
+
+class _BrothersCoffeeAppState extends State<BrothersCoffeeApp> {
+  late final AppController _controller = AppController(widget.accounts)..load();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => MaterialApp(
+    onGenerateTitle: (context) => AppLocalizations.of(context).appName,
+    debugShowCheckedModeBanner: false,
+    theme: AppTheme.light,
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: AuthGate(
+      controller: _controller,
+      categories: widget.categories,
+      products: widget.products,
+    ),
+  );
+}

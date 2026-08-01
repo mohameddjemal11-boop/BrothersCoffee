@@ -1,0 +1,468 @@
+import 'package:flutter/material.dart';
+
+import '../../../app/theme/app_theme.dart';
+import '../../../domain/entities/account.dart';
+import '../../../domain/entities/catalog.dart';
+import '../../../domain/entities/enums.dart';
+import '../../../domain/repositories/catalog_repositories.dart';
+import '../../../l10n/generated/app_localizations.dart';
+import '../../catalog/presentation/catalog_admin_screen.dart';
+import 'basket_controller.dart';
+
+class PosShellScreen extends StatefulWidget {
+  const PosShellScreen({
+    super.key,
+    required this.account,
+    required this.categories,
+    required this.products,
+    required this.onSwitchUser,
+  });
+  final Account account;
+  final CategoryRepository categories;
+  final ProductRepository products;
+  final VoidCallback onSwitchUser;
+  @override
+  State<PosShellScreen> createState() => _PosShellScreenState();
+}
+
+class _PosShellScreenState extends State<PosShellScreen> {
+  final BasketController _basket = BasketController();
+  String? _categoryId;
+  Future<void> _manage() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => CatalogAdminScreen(
+          categories: widget.categories,
+          products: widget.products,
+        ),
+      ),
+    );
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _basket.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    body: SafeArea(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final landscape =
+              constraints.maxWidth >= 700 &&
+              constraints.maxWidth > constraints.maxHeight;
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                _TopBar(
+                  account: widget.account,
+                  landscape: landscape,
+                  onManage: _manage,
+                  onSwitchUser: widget.onSwitchUser,
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: landscape
+                      ? Row(
+                          children: [
+                            Expanded(
+                              flex: 7,
+                              child: _CatalogPane(
+                                categories: widget.categories,
+                                products: widget.products,
+                                selectedId: _categoryId,
+                                onSelect: (id) =>
+                                    setState(() => _categoryId = id),
+                                basket: _basket,
+                                isManager:
+                                    widget.account.role == AccountRole.manager,
+                                onManage: _manage,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            SizedBox(
+                              width: 360,
+                              child: _BasketPane(basket: _basket),
+                            ),
+                          ],
+                        )
+                      : Column(
+                          children: [
+                            Expanded(
+                              child: _CatalogPane(
+                                categories: widget.categories,
+                                products: widget.products,
+                                selectedId: _categoryId,
+                                onSelect: (id) =>
+                                    setState(() => _categoryId = id),
+                                basket: _basket,
+                                isManager:
+                                    widget.account.role == AccountRole.manager,
+                                onManage: _manage,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              height: 245,
+                              child: _BasketPane(basket: _basket),
+                            ),
+                          ],
+                        ),
+                ),
+                const SizedBox(height: 10),
+                _OfflineReady(),
+              ],
+            ),
+          );
+        },
+      ),
+    ),
+  );
+}
+
+class _TopBar extends StatelessWidget {
+  const _TopBar({
+    required this.account,
+    required this.landscape,
+    required this.onManage,
+    required this.onSwitchUser,
+  });
+  final Account account;
+  final bool landscape;
+  final VoidCallback onManage, onSwitchUser;
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return Row(
+      children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Icon(
+            Icons.coffee_rounded,
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l.appName, style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                account.displayName,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ),
+        TextButton.icon(
+          onPressed: onSwitchUser,
+          icon: const Icon(Icons.switch_account_outlined),
+          label: Text(landscape ? l.changeUser : l.switchLabel),
+        ),
+        if (account.role == AccountRole.manager) ...[
+          const SizedBox(width: 8),
+          IconButton.filledTonal(
+            tooltip: l.management,
+            onPressed: onManage,
+            icon: const Icon(Icons.settings_outlined),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _CatalogPane extends StatelessWidget {
+  const _CatalogPane({
+    required this.categories,
+    required this.products,
+    required this.selectedId,
+    required this.onSelect,
+    required this.basket,
+    required this.isManager,
+    required this.onManage,
+  });
+  final CategoryRepository categories;
+  final ProductRepository products;
+  final String? selectedId;
+  final ValueChanged<String?> onSelect;
+  final BasketController basket;
+  final bool isManager;
+  final VoidCallback onManage;
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: FutureBuilder<List<Category>>(
+          future: categories.listActive(),
+          builder: (context, cats) {
+            if (!cats.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            return FutureBuilder<List<Product>>(
+              future: products.listActive(categoryId: selectedId),
+              builder: (context, items) {
+                if (!items.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      l.catalog,
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
+                    const SizedBox(height: 12),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          FilterChip(
+                            selected: selectedId == null,
+                            onSelected: (_) => onSelect(null),
+                            label: Text(l.allProducts),
+                          ),
+                          ...cats.data!.map(
+                            (category) => Padding(
+                              padding: const EdgeInsetsDirectional.only(
+                                start: 8,
+                              ),
+                              child: FilterChip(
+                                selected: selectedId == category.id,
+                                onSelected: (_) => onSelect(category.id),
+                                label: Text(category.name),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: items.data!.isEmpty
+                          ? _CatalogEmpty(
+                              isManager: isManager,
+                              onManage: onManage,
+                            )
+                          : GridView.builder(
+                              gridDelegate:
+                                  const SliverGridDelegateWithMaxCrossAxisExtent(
+                                    maxCrossAxisExtent: 180,
+                                    mainAxisExtent: 155,
+                                    crossAxisSpacing: 12,
+                                    mainAxisSpacing: 12,
+                                  ),
+                              itemCount: items.data!.length,
+                              itemBuilder: (context, index) {
+                                final product = items.data![index];
+                                return InkWell(
+                                  onTap: () => basket.add(product),
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Card(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(14),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const Icon(Icons.local_cafe_outlined),
+                                          const Spacer(),
+                                          Text(
+                                            product.name,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: Theme.of(
+                                              context,
+                                            ).textTheme.titleMedium,
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            product.price.format(
+                                              locale: Localizations.localeOf(
+                                                context,
+                                              ).toString(),
+                                            ),
+                                            style: Theme.of(
+                                              context,
+                                            ).textTheme.labelLarge,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _CatalogEmpty extends StatelessWidget {
+  const _CatalogEmpty({required this.isManager, required this.onManage});
+  final bool isManager;
+  final VoidCallback onManage;
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.local_cafe_outlined,
+              size: 68,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(height: 18),
+            Text(
+              l.emptyCatalogTitle,
+              style: Theme.of(context).textTheme.titleLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(l.emptyCatalogMessage, textAlign: TextAlign.center),
+            if (isManager) ...[
+              const SizedBox(height: 20),
+              OutlinedButton.icon(
+                onPressed: onManage,
+                icon: const Icon(Icons.add_rounded),
+                label: Text(l.openManagement),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BasketPane extends StatelessWidget {
+  const _BasketPane({required this.basket});
+  final BasketController basket;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: AnimatedBuilder(
+          animation: basket,
+          builder: (context, child) => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                l.currentOrder,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: basket.lines.isEmpty
+                    ? Center(
+                        child: Text(l.emptyBasket, textAlign: TextAlign.center),
+                      )
+                    : ListView.separated(
+                        itemCount: basket.lines.length,
+                        separatorBuilder: (_, index) => const Divider(),
+                        itemBuilder: (context, index) {
+                          final line = basket.lines[index];
+                          return Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  line.product.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: () => basket.decrement(line.product),
+                                icon: const Icon(Icons.remove_circle_outline),
+                              ),
+                              Text('${line.quantity}'),
+                              IconButton(
+                                onPressed: () => basket.add(line.product),
+                                icon: const Icon(Icons.add_circle_outline),
+                              ),
+                              IconButton(
+                                onPressed: () => basket.remove(line.product.id),
+                                icon: const Icon(Icons.delete_outline),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+              ),
+              const Divider(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(l.total, style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    basket.total.format(
+                      locale: Localizations.localeOf(context).toString(),
+                    ),
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              FilledButton.icon(
+                onPressed: null,
+                icon: const Icon(Icons.check_circle_outline_rounded),
+                label: Text(l.confirmSale),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _OfflineReady extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.cloud_off_rounded,
+          size: 16,
+          color: Theme.of(context).extension<AppStatusColors>()!.success,
+        ),
+        const SizedBox(width: 6),
+        Text(
+          l.offlineReady,
+          style: TextStyle(
+            color: Theme.of(context).extension<AppStatusColors>()!.success,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
+}
