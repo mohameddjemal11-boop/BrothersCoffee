@@ -261,6 +261,9 @@ class _RecordingSales implements SaleRepository {
 }
 
 class _Categories implements CategoryRepository {
+  @override
+  Future<bool> referencesImage(String imageRef, {String? excludingId}) async =>
+      false;
   _Categories(this.category);
   final Category category;
 
@@ -278,11 +281,14 @@ class _Categories implements CategoryRepository {
   Future<Category> update({
     required String id,
     String? name,
-    String? imageRef,
+    ImageRefChange image = const KeepImageRef(),
   }) => throw UnimplementedError();
 }
 
 class _Products implements ProductRepository {
+  @override
+  Future<bool> referencesImage(String imageRef, {String? excludingId}) async =>
+      false;
   _Products(this.product);
   final Product product;
 
@@ -307,11 +313,14 @@ class _Products implements ProductRepository {
     String? categoryId,
     String? name,
     Money? price,
-    String? imageRef,
+    ImageRefChange image = const KeepImageRef(),
   }) => throw UnimplementedError();
 }
 
 class _EmptyCategories implements CategoryRepository {
+  @override
+  Future<bool> referencesImage(String imageRef, {String? excludingId}) async =>
+      false;
   @override
   Future<List<Category>> listActive() async => const [];
 
@@ -326,11 +335,14 @@ class _EmptyCategories implements CategoryRepository {
   Future<Category> update({
     required String id,
     String? name,
-    String? imageRef,
+    ImageRefChange image = const KeepImageRef(),
   }) => throw UnimplementedError();
 }
 
 class _EmptyProducts implements ProductRepository {
+  @override
+  Future<bool> referencesImage(String imageRef, {String? excludingId}) async =>
+      false;
   @override
   Future<List<Product>> listActive({String? categoryId}) async => const [];
 
@@ -352,6 +364,6 @@ class _EmptyProducts implements ProductRepository {
     String? categoryId,
     String? name,
     Money? price,
-    String? imageRef,
+    ImageRefChange image = const KeepImageRef(),
   }) => throw UnimplementedError();
 }

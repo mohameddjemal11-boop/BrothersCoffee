@@ -48,7 +48,7 @@ class DriftCategoryRepository implements CategoryRepository {
   Future<domain.Category> update({
     required String id,
     String? name,
-    String? imageRef,
+    ImageRefChange image = const KeepImageRef(),
   }) async {
     final current = await _findRow(id);
     await (_database.update(
@@ -56,7 +56,11 @@ class DriftCategoryRepository implements CategoryRepository {
     )..where((row) => row.id.equals(id))).write(
       CategoriesCompanion(
         name: name == null ? const Value.absent() : Value(_validName(name)),
-        imageRef: imageRef == null ? const Value.absent() : Value(imageRef),
+        imageRef: switch (image) {
+          KeepImageRef() => const Value.absent(),
+          RemoveImageRef() => const Value(null),
+          SetImageRef(:final imageRef) => Value(imageRef),
+        },
         updatedAt: Value(DateTime.now().toUtc()),
         revision: Value(current.revision + 1),
       ),
@@ -121,6 +125,17 @@ class DriftCategoryRepository implements CategoryRepository {
     });
   }
 
+  @override
+  Future<bool> referencesImage(String imageRef, {String? excludingId}) async {
+    var query = _database.select(_database.categories)
+      ..where((row) => row.imageRef.equals(imageRef));
+    if (excludingId != null) {
+      query.where((row) => row.id.isNotValue(excludingId));
+    }
+    query.limit(1);
+    return (await query.get()).isNotEmpty;
+  }
+
   Future<Category> _findRow(String id) async => (_database.select(
     _database.categories,
   )..where((row) => row.id.equals(id))).getSingle();
@@ -182,7 +197,7 @@ class DriftProductRepository implements ProductRepository {
     String? categoryId,
     String? name,
     Money? price,
-    String? imageRef,
+    ImageRefChange image = const KeepImageRef(),
   }) async {
     final current = await _findRow(id);
     if (categoryId != null) await _requireActiveCategory(categoryId);
@@ -200,7 +215,11 @@ class DriftProductRepository implements ProductRepository {
         priceMillimes: price == null
             ? const Value.absent()
             : Value(price.millimes),
-        imageRef: imageRef == null ? const Value.absent() : Value(imageRef),
+        imageRef: switch (image) {
+          KeepImageRef() => const Value.absent(),
+          RemoveImageRef() => const Value(null),
+          SetImageRef(:final imageRef) => Value(imageRef),
+        },
         updatedAt: Value(DateTime.now().toUtc()),
         revision: Value(current.revision + 1),
       ),
@@ -244,6 +263,17 @@ class DriftProductRepository implements ProductRepository {
         );
       }
     });
+  }
+
+  @override
+  Future<bool> referencesImage(String imageRef, {String? excludingId}) async {
+    var query = _database.select(_database.products)
+      ..where((row) => row.imageRef.equals(imageRef));
+    if (excludingId != null) {
+      query.where((row) => row.id.isNotValue(excludingId));
+    }
+    query.limit(1);
+    return (await query.get()).isNotEmpty;
   }
 
   Future<void> _requireActiveCategory(String id) async {

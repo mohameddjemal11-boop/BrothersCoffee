@@ -314,6 +314,48 @@ abstract class AppLocalizations {
   /// **'Ajouter un produit'**
   String get addProduct;
 
+  /// No description provided for @edit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier'**
+  String get edit;
+
+  /// No description provided for @editCategory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier la catégorie'**
+  String get editCategory;
+
+  /// No description provided for @editProduct.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier le produit'**
+  String get editProduct;
+
+  /// No description provided for @choosePhoto.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir une photo'**
+  String get choosePhoto;
+
+  /// No description provided for @replacePhoto.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remplacer la photo'**
+  String get replacePhoto;
+
+  /// No description provided for @removePhoto.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer la photo'**
+  String get removePhoto;
+
+  /// No description provided for @mediaImportFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'La photo n’a pas pu être importée. Vérifiez le format et l’espace disponible, puis réessayez.'**
+  String get mediaImportFailed;
+
   /// No description provided for @archive.
   ///
   /// In fr, this message translates to:

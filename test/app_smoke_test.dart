@@ -115,6 +115,9 @@ class FakeAccounts
 
 class FakeCategories implements CategoryRepository {
   @override
+  Future<bool> referencesImage(String imageRef, {String? excludingId}) async =>
+      false;
+  @override
   Future<void> archive(String id) async {}
   @override
   Future<Category> create({required String name, String? imageRef}) =>
@@ -127,11 +130,14 @@ class FakeCategories implements CategoryRepository {
   Future<Category> update({
     required String id,
     String? name,
-    String? imageRef,
+    ImageRefChange image = const KeepImageRef(),
   }) => throw UnimplementedError();
 }
 
 class FakeProducts implements ProductRepository {
+  @override
+  Future<bool> referencesImage(String imageRef, {String? excludingId}) async =>
+      false;
   @override
   Future<void> archive(String id) async {}
   @override
@@ -151,7 +157,7 @@ class FakeProducts implements ProductRepository {
     String? categoryId,
     String? name,
     Money? price,
-    String? imageRef,
+    ImageRefChange image = const KeepImageRef(),
   }) => throw UnimplementedError();
 }
 

@@ -117,6 +117,28 @@ class AppLocalizationsAr extends AppLocalizations {
   String get addProduct => 'إضافة منتج';
 
   @override
+  String get edit => 'تعديل';
+
+  @override
+  String get editCategory => 'تعديل الفئة';
+
+  @override
+  String get editProduct => 'تعديل المنتج';
+
+  @override
+  String get choosePhoto => 'اختيار صورة';
+
+  @override
+  String get replacePhoto => 'استبدال الصورة';
+
+  @override
+  String get removePhoto => 'حذف الصورة';
+
+  @override
+  String get mediaImportFailed =>
+      'تعذر استيراد الصورة. تحقق من التنسيق والمساحة المتاحة ثم حاول مجددًا.';
+
+  @override
   String get archive => 'أرشفة';
 
   @override
