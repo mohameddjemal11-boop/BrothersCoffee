@@ -179,13 +179,14 @@ class _PosShellScreenState extends State<PosShellScreen> {
           final landscape =
               constraints.maxWidth >= 700 &&
               constraints.maxWidth > constraints.maxHeight;
+          final compactHeader = constraints.maxWidth < 850;
           return Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
                 _TopBar(
                   account: widget.account,
-                  landscape: landscape,
+                  compact: compactHeader,
                   onManage: _manage,
                   onManageAccounts: _manageAccounts,
                   onHistory: _openHistory,
@@ -264,7 +265,7 @@ class _PosShellScreenState extends State<PosShellScreen> {
 class _TopBar extends StatelessWidget {
   const _TopBar({
     required this.account,
-    required this.landscape,
+    required this.compact,
     required this.onManage,
     required this.onManageAccounts,
     required this.onHistory,
@@ -273,7 +274,7 @@ class _TopBar extends StatelessWidget {
     required this.onSwitchUser,
   });
   final Account account;
-  final bool landscape;
+  final bool compact;
   final VoidCallback onManage;
   final VoidCallback onManageAccounts;
   final VoidCallback onHistory;
@@ -302,55 +303,142 @@ class _TopBar extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(l.appName, style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                l.appName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               Text(
                 account.displayName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
           ),
         ),
-        TextButton.icon(
-          onPressed: onSwitchUser,
-          icon: const Icon(Icons.switch_account_outlined),
-          label: Text(landscape ? l.changeUser : l.switchLabel),
-        ),
-        const SizedBox(width: 8),
-        IconButton.filledTonal(
-          tooltip: l.closeBusinessDay,
-          onPressed: onCloseDay,
-          icon: const Icon(Icons.point_of_sale_outlined),
-        ),
-        if (account.role == AccountRole.manager) ...[
-          const SizedBox(width: 8),
-          IconButton.filledTonal(
-            tooltip: l.salesHistory,
-            onPressed: onHistory,
-            icon: const Icon(Icons.receipt_long_outlined),
-          ),
-          const SizedBox(width: 8),
-          IconButton.filledTonal(
-            tooltip: l.reports,
-            onPressed: onReports,
-            icon: const Icon(Icons.assessment_outlined),
-          ),
-          const SizedBox(width: 8),
-          IconButton.filledTonal(
+        if (compact)
+          PopupMenuButton<_TopAction>(
             tooltip: l.management,
-            onPressed: onManage,
-            icon: const Icon(Icons.settings_outlined),
+            icon: const Icon(Icons.more_vert),
+            onSelected: (action) {
+              switch (action) {
+                case _TopAction.switchUser:
+                  onSwitchUser();
+                  break;
+                case _TopAction.closeDay:
+                  onCloseDay();
+                  break;
+                case _TopAction.history:
+                  onHistory();
+                  break;
+                case _TopAction.reports:
+                  onReports();
+                  break;
+                case _TopAction.catalog:
+                  onManage();
+                  break;
+                case _TopAction.accounts:
+                  onManageAccounts();
+                  break;
+              }
+            },
+            itemBuilder: (context) => [
+              _topActionItem(
+                _TopAction.switchUser,
+                Icons.switch_account_outlined,
+                l.changeUser,
+              ),
+              _topActionItem(
+                _TopAction.closeDay,
+                Icons.point_of_sale_outlined,
+                l.closeBusinessDay,
+              ),
+              if (account.role == AccountRole.manager) ...[
+                _topActionItem(
+                  _TopAction.history,
+                  Icons.receipt_long_outlined,
+                  l.salesHistory,
+                ),
+                _topActionItem(
+                  _TopAction.reports,
+                  Icons.assessment_outlined,
+                  l.reports,
+                ),
+                _topActionItem(
+                  _TopAction.catalog,
+                  Icons.settings_outlined,
+                  l.management,
+                ),
+                _topActionItem(
+                  _TopAction.accounts,
+                  Icons.manage_accounts_outlined,
+                  l.accountManagement,
+                ),
+              ],
+            ],
+          )
+        else ...[
+          TextButton.icon(
+            onPressed: onSwitchUser,
+            icon: const Icon(Icons.switch_account_outlined),
+            label: Text(l.changeUser),
           ),
           const SizedBox(width: 8),
           IconButton.filledTonal(
-            tooltip: l.accountManagement,
-            onPressed: onManageAccounts,
-            icon: const Icon(Icons.manage_accounts_outlined),
+            tooltip: l.closeBusinessDay,
+            onPressed: onCloseDay,
+            icon: const Icon(Icons.point_of_sale_outlined),
           ),
+          if (account.role == AccountRole.manager) ...[
+            const SizedBox(width: 8),
+            IconButton.filledTonal(
+              tooltip: l.salesHistory,
+              onPressed: onHistory,
+              icon: const Icon(Icons.receipt_long_outlined),
+            ),
+            const SizedBox(width: 8),
+            IconButton.filledTonal(
+              tooltip: l.reports,
+              onPressed: onReports,
+              icon: const Icon(Icons.assessment_outlined),
+            ),
+            const SizedBox(width: 8),
+            IconButton.filledTonal(
+              tooltip: l.management,
+              onPressed: onManage,
+              icon: const Icon(Icons.settings_outlined),
+            ),
+            const SizedBox(width: 8),
+            IconButton.filledTonal(
+              tooltip: l.accountManagement,
+              onPressed: onManageAccounts,
+              icon: const Icon(Icons.manage_accounts_outlined),
+            ),
+          ],
         ],
       ],
     );
   }
 }
+
+enum _TopAction { switchUser, closeDay, history, reports, catalog, accounts }
+
+PopupMenuItem<_TopAction> _topActionItem(
+  _TopAction value,
+  IconData icon,
+  String label,
+) => PopupMenuItem(
+  value: value,
+  child: Row(
+    children: [
+      Icon(icon),
+      const SizedBox(width: 12),
+      Flexible(child: Text(label)),
+    ],
+  ),
+);
 
 class _CatalogPane extends StatelessWidget {
   const _CatalogPane({
@@ -495,34 +583,46 @@ class _CatalogEmpty extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 420),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.local_cafe_outlined,
-              size: 68,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(height: 18),
-            Text(
-              l.emptyCatalogTitle,
-              style: Theme.of(context).textTheme.titleLarge,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(l.emptyCatalogMessage, textAlign: TextAlign.center),
-            if (isManager) ...[
-              const SizedBox(height: 20),
-              OutlinedButton.icon(
-                onPressed: onManage,
-                icon: const Icon(Icons.add_rounded),
-                label: Text(l.openManagement),
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: constraints.maxHeight > 16
+                ? constraints.maxHeight - 16
+                : 0,
+          ),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.local_cafe_outlined,
+                    size: 68,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    l.emptyCatalogTitle,
+                    style: Theme.of(context).textTheme.titleLarge,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(l.emptyCatalogMessage, textAlign: TextAlign.center),
+                  if (isManager) ...[
+                    const SizedBox(height: 20),
+                    OutlinedButton.icon(
+                      onPressed: onManage,
+                      icon: const Icon(Icons.add_rounded),
+                      label: Text(l.openManagement),
+                    ),
+                  ],
+                ],
               ),
-            ],
-          ],
+            ),
+          ),
         ),
       ),
     );
