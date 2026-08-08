@@ -840,3 +840,107 @@ Implement after Topic 1 so sale confirmation/cancellation integrates with the
 final cash-session lifecycle and so schema migrations are ordered once. Complete
 it before inventory-aware export, backup/restore, or reporting topics. Start
 from the reviewed, merged Topic 1 result on `codex/inventory-management`.
+
+## Topic 3 — Application shell and POS interface redesign
+
+**Status:** Clarifying
+
+**Working branch name:** To be confirmed after the requirements are agreed.
+
+### Reference direction
+
+The supplied POS screenshot is a structural reference rather than a request for
+an identical visual copy. Its useful foundations are:
+
+- A persistent, compact navigation area at the side of a landscape tablet.
+- A large central workspace dedicated to categories and quickly tappable
+  product tiles.
+- A persistent order/basket panel on the right with quantity controls, total,
+  and the primary sale action always reachable.
+- Clear separation between global navigation, catalogue selection, and the
+  current order.
+- A dense counter-oriented layout that minimizes navigation during a sale.
+
+The example's euro currency, card payment, denomination shortcuts, table
+service, and other bakery-specific functions are not implicitly part of this
+topic. Brothers Coffee continues to use integer millimes and immediate cash
+sales unless separately agreed.
+
+### Initial Brothers Coffee interpretation
+
+- The redesign establishes a shared application shell and design system for the
+  entire app, then adapts POS, cash sessions, inventory, catalogue, reports,
+  accounts, settings, and authentication to it.
+- Landscape tablet is the primary POS composition: adaptive navigation rail,
+  catalogue/product workspace, and fixed basket panel.
+- A roughly 10-inch Android tablet is the primary target, while tablet portrait
+  and phone portrait/landscape remain fully usable.
+- Product and category ordering continues to follow manager-defined catalogue
+  order.
+- Existing product photos are used when available with a stable branded
+  fallback when absent or unreadable.
+- The current cash-session reference, open/closed state, responsible cashier,
+  and signed-in account have a clear but compact place in the shell.
+- A closed session keeps sale confirmation unavailable and displays the agreed
+  employee message or manager open action.
+- Manager destinations can include cash-session controls, inventory, catalogue,
+  reports/history, account management, and settings; employee navigation shows
+  only permitted destinations.
+- Phone portrait/landscape and future Arabic/RTL remain supported through an
+  adaptive composition rather than shrinking the tablet layout.
+- Tablet landscape uses a left navigation rail. It exposes POS, cash session,
+  inventory, catalogue, history/reports, accounts, settings, and user switching
+  according to the signed-in role.
+- Categories use a colored horizontal strip at the bottom of the landscape
+  catalogue and above the grid on narrower layouts. Colors come from the app
+  palette rather than new manager-configurable category data.
+- A product tile shows photo/fallback, name, price in millimes, and its current
+  basket quantity. One tap immediately adds one unit.
+- The landscape basket is a persistent right panel containing every line,
+  plus/minus/remove controls, line totals, order total, and a large cash-sale
+  confirmation action.
+- Payment remains the existing immediate cash confirmation. Received-cash
+  entry, change calculation, denomination shortcuts, card payment, and table
+  service are excluded.
+- Product search is excluded because the shop catalogue is intentionally small.
+- On a phone, the product grid remains primary and a persistent bottom summary
+  opens the basket as a full-height sheet/page instead of permanently consuming
+  half of the screen.
+- A polished warm coffee visual identity may be designed after the shop logo is
+  supplied. The logo, extracted brand cues, and an approved tablet POS mockup
+  are inputs before final Flutter styling.
+- A landscape-tablet wireframe/mockup must be reviewed before Topic 3
+  implementation; phone and management layouts derive from that direction.
+
+### Tablet emulation and visual verification
+
+The development PC currently has the Android SDK and command-line AVD tools,
+including a Pixel Tablet device definition, but it does not yet have the Android
+Emulator package, a system image, or an AVD installed.
+
+Before Topic 3 implementation or visual acceptance:
+
+- Install the Android Emulator and one stable x86_64 Google APIs system image
+  using the existing Android SDK manager.
+- Create a dedicated AVD such as `BrothersCoffee_Tablet_API35` from the Pixel
+  Tablet or equivalent 10-inch profile.
+- Verify hardware acceleration on this Windows host and document any required
+  Windows Hypervisor Platform setting.
+- Run the real Android build through `flutter run` on that AVD in landscape and
+  portrait, including rotation, restart, keyboard, dialog, and touch workflows.
+- Keep physical-phone testing for compact layouts.
+- Add widget/golden-style layout checks at representative logical tablet and
+  phone sizes so common regressions do not depend solely on manual emulator
+  inspection.
+- A real target tablet remains desirable for final release acceptance because
+  an emulator cannot validate physical touch ergonomics, brightness, or device-
+  specific performance, but it is sufficient for development layout review.
+
+### Requirements still to clarify
+
+- Final logo asset, brand colors/cues, and any constraints on how the logo may be
+  cropped or recolored.
+- Final visual direction and detailed component choices after the first
+  landscape-tablet mockup is reviewed.
+- Emulator system image/API selection after checking download availability and
+  hardware acceleration during setup.
