@@ -144,6 +144,62 @@ void main() {
     expect(find.text('Brothers Coffee'), findsOneWidget);
     expect(find.text('Le catalogue est vide'), findsOneWidget);
   });
+
+  testWidgets('product catalogue uses two columns and bottom basket on phone', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(_managerPosWithProducts());
+    await tester.pumpAndSettle();
+
+    final grid = tester.widget<GridView>(
+      find.byKey(const ValueKey('product-grid')),
+    );
+    final delegate =
+        grid.gridDelegate as SliverGridDelegateWithFixedCrossAxisCount;
+    expect(delegate.crossAxisCount, 2);
+    expect(delegate.mainAxisExtent, 190);
+    expect(find.byKey(const ValueKey('bottom-basket')), findsOneWidget);
+    expect(find.byKey(const ValueKey('side-basket')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('tablet landscape uses a wider grid and side basket', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1280, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(_managerPosWithProducts());
+    await tester.pumpAndSettle();
+
+    final grid = tester.widget<GridView>(
+      find.byKey(const ValueKey('product-grid')),
+    );
+    final delegate =
+        grid.gridDelegate as SliverGridDelegateWithFixedCrossAxisCount;
+    expect(delegate.crossAxisCount, greaterThanOrEqualTo(3));
+    expect(delegate.mainAxisExtent, 210);
+    expect(find.byKey(const ValueKey('side-basket')), findsOneWidget);
+    expect(find.byKey(const ValueKey('bottom-basket')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('rotated small phone uses side basket without overflow', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(_managerPosWithProducts());
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('side-basket')), findsOneWidget);
+    expect(find.byKey(const ValueKey('bottom-basket')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 Widget _emptyManagerPos() {
@@ -167,6 +223,55 @@ Widget _emptyManagerPos() {
       accountAdministration: _AccountAdministration(),
       categories: _EmptyCategories(),
       products: _EmptyProducts(),
+      sales: _RecordingSales(),
+      businessDays: businessDays,
+      reports: businessDays,
+      onSwitchUser: () {},
+    ),
+  );
+}
+
+Widget _managerPosWithProducts() {
+  final now = DateTime(2026, 8, 1, 17);
+  final category = Category(
+    id: 'coffee',
+    name: 'Cafés',
+    isActive: true,
+    sortOrder: 0,
+    createdAt: now,
+    updatedAt: now,
+    revision: 1,
+  );
+  final product = Product(
+    id: 'espresso',
+    categoryId: category.id,
+    name: 'Espresso très long',
+    price: const Money(2500),
+    isActive: true,
+    sortOrder: 0,
+    createdAt: now,
+    updatedAt: now,
+    revision: 1,
+  );
+  final businessDays = _BusinessDays();
+  return MaterialApp(
+    locale: const Locale('fr'),
+    theme: AppTheme.light,
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: PosShellScreen(
+      account: Account(
+        id: 'manager',
+        displayName: 'Jamoul',
+        role: AccountRole.manager,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+        revision: 1,
+      ),
+      accountAdministration: _AccountAdministration(),
+      categories: _Categories(category),
+      products: _Products(product),
       sales: _RecordingSales(),
       businessDays: businessDays,
       reports: businessDays,

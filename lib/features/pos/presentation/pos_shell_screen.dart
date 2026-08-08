@@ -184,12 +184,13 @@ class _PosShellScreenState extends State<PosShellScreen> {
     body: SafeArea(
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final landscape =
+          final phone = constraints.maxWidth < 600;
+          final sideBySide =
               constraints.maxWidth >= 700 &&
               constraints.maxWidth > constraints.maxHeight;
           final compactHeader = constraints.maxWidth < 850;
           return Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(phone ? 10 : 16),
             child: Column(
               children: [
                 _TopBar(
@@ -202,9 +203,9 @@ class _PosShellScreenState extends State<PosShellScreen> {
                   onReports: _openReports,
                   onSwitchUser: widget.onSwitchUser,
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: phone ? 10 : 16),
                 Expanded(
-                  child: landscape
+                  child: sideBySide
                       ? Row(
                           children: [
                             Expanded(
@@ -224,7 +225,12 @@ class _PosShellScreenState extends State<PosShellScreen> {
                             ),
                             const SizedBox(width: 16),
                             SizedBox(
-                              width: 360,
+                              width: constraints.maxWidth >= 1200
+                                  ? 380
+                                  : constraints.maxWidth >= 900
+                                  ? 340
+                                  : 280,
+                              key: const ValueKey('side-basket'),
                               child: _BasketPane(
                                 basket: _basket,
                                 confirming: _confirming,
@@ -249,9 +255,10 @@ class _PosShellScreenState extends State<PosShellScreen> {
                                 mediaStore: widget.mediaStore,
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            SizedBox(height: phone ? 8 : 12),
                             SizedBox(
-                              height: 245,
+                              height: phone ? 220 : 260,
+                              key: const ValueKey('bottom-basket'),
                               child: _BasketPane(
                                 basket: _basket,
                                 confirming: _confirming,
@@ -261,7 +268,7 @@ class _PosShellScreenState extends State<PosShellScreen> {
                           ],
                         ),
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: phone ? 6 : 10),
                 _OfflineReady(),
               ],
             ),
@@ -474,7 +481,9 @@ class _CatalogPane extends StatelessWidget {
     final l = AppLocalizations.of(context);
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: EdgeInsets.all(
+          MediaQuery.sizeOf(context).width < 600 ? 12 : 18,
+        ),
         child: FutureBuilder<List<Category>>(
           future: categories.listActive(),
           builder: (context, cats) {
@@ -526,61 +535,29 @@ class _CatalogPane extends StatelessWidget {
                               isManager: isManager,
                               onManage: onManage,
                             )
-                          : GridView.builder(
-                              gridDelegate:
-                                  const SliverGridDelegateWithMaxCrossAxisExtent(
-                                    maxCrossAxisExtent: 180,
-                                    mainAxisExtent: 155,
-                                    crossAxisSpacing: 12,
-                                    mainAxisSpacing: 12,
-                                  ),
-                              itemCount: items.data!.length,
-                              itemBuilder: (context, index) {
-                                final product = items.data![index];
-                                return InkWell(
-                                  onTap: () => basket.add(product),
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Card(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(14),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Expanded(
-                                            child: ManagedImage(
-                                              imageRef: product.imageRef,
-                                              mediaStore: mediaStore,
-                                              fallback: const Icon(
-                                                Icons.local_cafe_outlined,
-                                              ),
-                                              width: double.infinity,
-                                            ),
-                                          ),
-                                          const Spacer(),
-                                          Text(
-                                            product.name,
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: Theme.of(
-                                              context,
-                                            ).textTheme.titleMedium,
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            product.price.formatMillimes(
-                                              locale: Localizations.localeOf(
-                                                context,
-                                              ).toString(),
-                                              unit: l.millimesUnit,
-                                            ),
-                                            style: Theme.of(
-                                              context,
-                                            ).textTheme.labelLarge,
-                                          ),
-                                        ],
+                          : LayoutBuilder(
+                              builder: (context, constraints) {
+                                final compact = constraints.maxWidth < 600;
+                                final columns = compact
+                                    ? (constraints.maxWidth >= 300 ? 2 : 1)
+                                    : (constraints.maxWidth / 190)
+                                          .floor()
+                                          .clamp(2, 6);
+                                return GridView.builder(
+                                  key: const ValueKey('product-grid'),
+                                  gridDelegate:
+                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: columns,
+                                        mainAxisExtent: compact ? 190 : 210,
+                                        crossAxisSpacing: compact ? 8 : 12,
+                                        mainAxisSpacing: compact ? 8 : 12,
                                       ),
-                                    ),
+                                  itemCount: items.data!.length,
+                                  itemBuilder: (context, index) => _ProductCard(
+                                    product: items.data![index],
+                                    basket: basket,
+                                    mediaStore: mediaStore,
+                                    compact: compact,
                                   ),
                                 );
                               },
@@ -591,6 +568,77 @@ class _CatalogPane extends StatelessWidget {
               },
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+class _ProductCard extends StatelessWidget {
+  const _ProductCard({
+    required this.product,
+    required this.basket,
+    required this.mediaStore,
+    required this.compact,
+  });
+
+  final Product product;
+  final BasketController basket;
+  final MediaStore mediaStore;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final colors = Theme.of(context).colorScheme;
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => basket.add(product),
+        child: Padding(
+          padding: EdgeInsets.all(compact ? 8 : 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                height: compact ? 100 : 116,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: colors.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: ManagedImage(
+                  imageRef: product.imageRef,
+                  mediaStore: mediaStore,
+                  fallback: Icon(
+                    Icons.local_cafe_outlined,
+                    color: colors.primary,
+                  ),
+                  width: double.infinity,
+                  height: double.infinity,
+                  fit: BoxFit.contain,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                product.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              const Spacer(),
+              Text(
+                product.price.formatMillimes(
+                  locale: Localizations.localeOf(context).toString(),
+                  unit: l.millimesUnit,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -665,7 +713,9 @@ class _BasketPane extends StatelessWidget {
     final l = AppLocalizations.of(context);
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: EdgeInsets.all(
+          MediaQuery.sizeOf(context).width < 600 ? 12 : 18,
+        ),
         child: AnimatedBuilder(
           animation: basket,
           builder: (context, child) => Column(

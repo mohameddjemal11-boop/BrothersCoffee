@@ -12,6 +12,7 @@ class ManagedImage extends StatelessWidget {
     required this.fallback,
     this.height,
     this.width,
+    this.fit = BoxFit.cover,
   });
 
   final String? imageRef;
@@ -19,6 +20,7 @@ class ManagedImage extends StatelessWidget {
   final Widget fallback;
   final double? height;
   final double? width;
+  final BoxFit fit;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +33,7 @@ class ManagedImage extends StatelessWidget {
         if (bytes == null || bytes.isEmpty) return _fallback();
         return Image.memory(
           bytes,
-          fit: BoxFit.cover,
+          fit: fit,
           cacheWidth: 512,
           cacheHeight: 512,
           height: height,
