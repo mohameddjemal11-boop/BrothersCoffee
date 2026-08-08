@@ -7,6 +7,11 @@ request, merge it, and only then create the next branch.
 The authoritative product and technical constraints remain in
 `PRODUCT_REQUIREMENTS.md` and `ARCHITECTURE.md`.
 
+> A separate product rework backlog is being defined in
+> [`PRODUCT_REWORK_BACKLOG.md`](PRODUCT_REWORK_BACKLOG.md). Its topics may
+> supersede assumptions in this MVP roadmap. Resolve and implement the rework
+> topics in their documented order before relying on conflicting items here.
+
 ## Working agreement
 
 For each topic:
