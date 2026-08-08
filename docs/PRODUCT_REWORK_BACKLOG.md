@@ -441,3 +441,402 @@ Implement this topic before further export, backup/restore, or reporting work
 because those features must use cash-session rather than business-day concepts.
 The implementation should start from an up-to-date `main` and remain isolated
 to `codex/manual-cash-sessions` until review and merge.
+
+## Topic 2 — Inventory management
+
+**Status:** Planned
+
+**Branch:** `codex/inventory-management`
+
+### Confirmed direction
+
+- Add offline local inventory management while keeping the sales catalogue and
+  physical stock as distinct concepts.
+- An inventory item does not have to be sellable or visible on the employee POS.
+  For example, packs of coffee beans may be tracked only in inventory.
+- A sellable catalogue product does not have to be stock-tracked. For example,
+  espresso may remain available on the POS without a directly maintained
+  “espresso quantity”.
+- A sellable catalogue product may be linked to inventory so its confirmed sale
+  automatically consumes stock. For example, selling one water bottle reduces
+  the linked water-bottle inventory quantity.
+- Inventory quantities are whole signed units such as packs, bottles, and cans;
+  grams, millilitres, and fractional quantities are not included.
+- Each catalogue product may link to at most one inventory item, and each
+  inventory item may link to at most one catalogue product in this version.
+- Every inventory item has an explicit whole base stock unit explaining what
+  one quantity means. Examples include one bottle, one pack, one can, or one
+  box. The base unit is part of the inventory item's persisted definition.
+- A product-to-item link carries a configurable strictly positive whole-unit
+  consumption quantity, defaulting to one.
+- Inventory is advisory and auditable rather than a sale-blocking reservation
+  system. Automatic consumption may make theoretical stock negative; a sale is
+  never rejected solely because recorded stock is insufficient.
+- Inventory management, quantities, history, thresholds, and manual operations
+  are manager-only. Employees continue to sell linked products without managing
+  inventory.
+- Inventory is continuous across cash sessions and calendar dates. It is not
+  reset or copied when a session opens or closes.
+- Inventory remains local and offline.
+
+### Initial conceptual model
+
+- **Catalogue product:** what the cashier selects and sells on the POS.
+- **Inventory item:** a physical good whose available quantity is tracked.
+- **Optional consumption link:** defines how much of an inventory item a
+  confirmed sale of a catalogue product consumes.
+
+The separation permits these initial cases:
+
+| Example | In sales catalogue | In inventory | Automatic consumption |
+| --- | --- | --- | --- |
+| Espresso | Yes | No direct espresso item | No |
+| Coffee-bean pack | No | Yes | No; manager records use/withdrawal manually |
+| Water bottle | Yes | Yes | One linked bottle per sold bottle |
+
+### Confirmed stock operations
+
+- Creating an inventory item requires an initial whole-unit quantity; zero is
+  valid. The initial balance is represented in stock history.
+- Managers can record stock receipt/addition, manual withdrawal/use, and a
+  physical inventory count/adjustment. Manual operations retain a helpful
+  reason or comment, actor, and timestamp.
+- Example: when an owner takes two coffee-bean packs home, the manager records a
+  withdrawal of two with the reason instead of silently editing the balance.
+- Stock history is append-only. A mistaken manual movement is corrected with a
+  new opposite movement rather than editing or deleting the original.
+- Confirming a sale of a linked product appends an automatic consumption
+  movement and decreases theoretical stock in the same transaction.
+- Cancelling that sale appends an automatic return movement restoring the exact
+  quantity originally consumed. Historic consumption is not mutated.
+- Negative theoretical stock is allowed for automatic consumption so forgotten
+  receipts or adjustments never block a legitimate physical sale.
+- An optional low-stock threshold can be configured when creating an inventory
+  item. A manager warning appears at quantity less than or equal to the
+  threshold, with a stronger state for negative stock. Thresholds are
+  non-negative and warnings remain inside the app; no push notification is
+  required.
+- Employees see neither theoretical stock quantities nor low/negative-stock
+  warnings. These indicators are manager-only and never block a sale.
+- Receipt/addition comments are optional. Withdrawal/use and physical-count
+  adjustments require a non-empty reason. Initial balance uses a system
+  description.
+- A manager withdrawal may make theoretical stock negative.
+- A physical inventory count must be non-negative. The system appends the
+  positive or negative difference from theoretical stock as an adjustment.
+- Product and inventory records are created separately. A manager optionally
+  links them and configures consumption through catalogue/inventory management.
+- An inventory item linked to an active catalogue product cannot be archived
+  until it is unlinked.
+- Base units use a localized predefined list: piece, bottle, can, pack, box,
+  carton, and bag, plus an `other` option with a required custom label.
+- Size or packaging details belong in the item name, for example `Eau 1,5 L` or
+  `Café en grains 1 kg`; no separate unit-description field is needed.
+- Receipts are entered directly in base units. Receiving one pack of six
+  individually tracked bottles means adding six bottle units, optionally noting
+  the packaging in the receipt comment. Automatic package conversion is
+  deferred.
+- Purchase prices, suppliers, lots, expiry, accounting, and per-session
+  sub-inventories are outside this version.
+
+### Scope boundaries
+
+Included:
+
+- Manager-only inventory item creation, metadata updates, history, movements,
+  thresholds, linking, unlinking, and archival.
+- Whole-unit initial balance, receipts, withdrawals, and physical counts.
+- Optional one-to-one linkage with a configurable whole-unit consumption rate.
+- Automatic sale consumption and cancellation return movements.
+- Negative theoretical stock with manager-only low/negative indicators.
+- Migration, persistence, auditability, localization, and offline operation.
+
+Not included:
+
+- Fractional quantities, weights, volume calculations, recipes, or multiple
+  ingredients per product.
+- One inventory item shared by multiple products or one product consuming
+  multiple items.
+- Stock reservation when adding to the basket or blocking confirmation because
+  of theoretical availability.
+- Packages with automatic base-unit conversion.
+- Employee stock screens, exact stock visibility, or employee stock warnings.
+- Purchase orders, purchase cost, suppliers, accounting, lots, expiry, barcode
+  scanning, inventory locations, or per-session sub-inventories.
+
+### User workflows
+
+#### Create an inventory item
+
+1. A manager opens inventory management and creates an item with a unique UUID,
+   name, localized base-unit type, optional custom unit label when `other` is
+   selected, non-negative initial quantity, and optional non-negative low-stock
+   threshold.
+2. The initial quantity becomes the current theoretical balance and an
+   append-only initial-balance history entry, including zero.
+3. The manager may later edit descriptive metadata and threshold, but never
+   directly overwrite the balance or historic movement.
+
+#### Receive, withdraw, and count stock
+
+1. A receipt adds a strictly positive number of base units and allows an
+   optional comment.
+2. A manual withdrawal removes a strictly positive number of units and requires
+   a non-empty reason. It may make the theoretical balance negative.
+3. A physical count requires a non-negative observed quantity and a non-empty
+   reason. The application calculates the signed difference and records the
+   counted value plus resulting balance, even when the difference is zero.
+4. Every operation records UUID, manager, timestamp, signed change, and balance
+   after the movement in one transaction.
+5. A mistake is corrected using a new opposite movement; history cannot be
+   edited or deleted.
+
+#### Link a catalogue product
+
+1. The manager creates inventory and catalogue records separately.
+2. From product or inventory management, the manager selects an active record
+   on the other side and specifies a strictly positive whole consumption value,
+   defaulting to one.
+3. Database uniqueness guarantees one product to one item and one item to one
+   product.
+4. Link edits or unlinking affect only future sales. Existing sale-consumption
+   movements retain their original item and quantity.
+5. An archived item cannot receive a new link. An item linked to an active
+   product cannot be archived until unlinked.
+
+#### Sell and cancel a linked product
+
+1. Employees use the POS exactly as for an untracked product; no quantity,
+   threshold, or warning is exposed.
+2. Confirmation calculates `sale quantity × configured consumption`, appends a
+   negative sale-consumption movement, and updates the balance in the same
+   transaction as the sale.
+3. The sale succeeds even if the resulting balance is zero, below threshold, or
+   negative.
+4. A permitted cancellation appends the exact inverse of the consumption saved
+   for that sale. It does not use the product's current link or current
+   consumption configuration.
+5. Duplicate cancellation cannot restore stock more than once.
+
+### Domain and persistence plan
+
+Use the next Drift schema version after Topic 1. Existing catalogue products
+remain unlinked and all current sales/history remain unchanged.
+
+Suggested model:
+
+- `inventory_items`
+  - UUID primary key, name, active/archive state, revision, timestamps.
+  - Base-unit enum and nullable custom label required only for `other`.
+  - Signed `current_quantity` projection.
+  - Nullable non-negative low-stock threshold.
+- `product_inventory_links`
+  - UUID primary key or stable relationship identifier.
+  - Unique product ID and unique inventory-item ID.
+  - Strictly positive whole consumption quantity, revision, and timestamps.
+- `inventory_movements`
+  - Append-only UUID, inventory item, movement type, signed quantity delta,
+    resulting balance, actor, UTC timestamp, and local date/time context.
+  - Optional reason/comment with constraints determined by movement type.
+  - Optional physical counted quantity for stocktake records.
+  - Optional sale/sale-line references and related consumption reference for
+    automatic consumption/return traceability.
+
+Movement types should distinguish at least:
+
+- `initialBalance`
+- `receipt`
+- `manualWithdrawal`
+- `physicalCountAdjustment`
+- `saleConsumption`
+- `saleCancellationReturn`
+
+Persistence safeguards:
+
+- Store quantities as SQLite integers; no floating point or decimal conversion.
+- Permit signed current balances and sale/manual-withdrawal results.
+- Require positive input for receipts, withdrawals, and link consumption.
+- Require non-negative physical counts and thresholds.
+- Enforce both sides of the one-to-one link with unique indexes.
+- Protect inventory movements from update/delete through database triggers.
+- Keep current quantity and its appended movement consistent in one transaction;
+  no repository operation updates only one side.
+- Sale consumption and cancellation return are part of their existing sale
+  transactions so neither business record can commit partially.
+- Preserve the consumption item and quantity on the movement so later link or
+  catalogue changes cannot alter cancellation behavior.
+
+Migration behavior:
+
+- Create inventory tables without synthesizing items for existing products.
+- Existing products are untracked until a manager explicitly links them.
+- Preserve all pre-inventory sale records without retroactive stock movements.
+- Extend every supported schema migration path and generated schema snapshot.
+
+### Repository and application boundaries
+
+- Add manager-authorized inventory query and command interfaces independent of
+  Drift rows and widgets.
+- Separate descriptive item/link commands from balance-changing commands.
+- Require and validate the acting manager for create, edit, receive, withdraw,
+  count, link, unlink, and archive operations below presentation.
+- Integrate automatic movement creation inside `SaleRepository` confirmation
+  and cancellation transactions without granting employees general inventory
+  permissions.
+- Use typed failures for manager required, inactive account, invalid unit/custom
+  label, invalid quantity/threshold, missing reason, item/link not found,
+  one-to-one conflict, archived item, and linked-active-product archival.
+- Expose a manager query for current items, warning status, linked product, and
+  paged/filtered movement history.
+- Keep the balance calculation and movement validation in application/domain
+  logic with repository-level transactional enforcement.
+
+### Warning and history behavior
+
+- No threshold means no low-stock warning, although negative stock is always
+  visually identifiable to the manager.
+- With a threshold, `current quantity <= threshold` is low stock.
+- Negative stock uses a stronger error state than an ordinary threshold warning.
+- Warnings are computed from current local data and displayed in inventory
+  management and suitable manager navigation/status surfaces only.
+- No push notification, network request, employee warning, or sale blocking is
+  introduced.
+- Movement history shows chronological type, delta, balance after, actor,
+  timestamp, reason/comment, and linked sale reference when applicable.
+
+### Presentation and localization plan
+
+- Add a manager-only inventory screen with search/filter, name, formatted
+  quantity/unit, optional linked product, and low/negative status.
+- Provide create/edit, receipt, withdrawal, physical count, history, link/unlink,
+  and archive actions in valid states.
+- Use localized singular/plural labels for predefined units. For `other`, show
+  the manager-provided label without pretending it can be automatically
+  translated.
+- Product administration shows optional inventory linkage and consumption per
+  sold unit; the employee POS does not show that configuration.
+- Require explicit confirmation for archive, unlink, withdrawal, and physical
+  adjustment actions.
+- Localize all French and Arabic labels/errors and keep directional layout APIs
+  for RTL.
+- Verify compact phone and tablet portrait/landscape forms, lists, dialogs, long
+  item names, large/negative quantities, and custom unit labels without overflow.
+
+### Documentation updates in the implementation branch
+
+- Add inventory scope, permissions, negative-stock rule, and workflows to
+  `PRODUCT_REQUIREMENTS.md`.
+- Add inventory entities, ledger invariants, and sale transaction integration to
+  `ARCHITECTURE.md`.
+- Update `README.md` after implementation and mark this topic completed only
+  after review and merge.
+- Keep per-session sub-inventory explicitly documented as future work.
+- Ensure future export and backup plans include inventory configuration and
+  movement history.
+
+### Automated verification
+
+Domain/repository tests:
+
+- Manager creates items with every predefined unit, valid custom unit, zero or
+  positive initial balance, and optional threshold.
+- Invalid custom unit, negative initial/count/threshold, and unauthorized direct
+  calls fail without partial writes.
+- Receipt, withdrawal, physical count, zero-difference count, and opposite
+  correction produce exact balances and immutable history.
+- Receipt comment is optional; withdrawal/count reasons are mandatory.
+- Manual withdrawal and sale consumption may cross zero and become negative.
+- Low warning triggers at equality/below threshold and negative uses the stronger
+  state; no-threshold behavior is correct.
+- One-to-one uniqueness is enforced from both product and inventory directions;
+  link consumption must be positive.
+- Link edits/unlinking affect future sales only.
+- Linked active-product archival is rejected; unlinking permits archival.
+
+Sale integration tests:
+
+- Selling an unlinked product makes no inventory movement.
+- Selling quantity `q` consumes `q × configured units` atomically.
+- Sale confirmation succeeds into negative stock and retains normal immutable
+  sale snapshots.
+- Sale rollback also rolls back balance and consumption movement.
+- Cancellation restores exactly the historic consumption once, even after link
+  quantity changes or unlinking.
+- Cancellation rollback leaves sale and inventory unchanged.
+- Employee sale confirmation can trigger automatic consumption without gaining
+  access to inventory management commands or queries.
+
+Database/migration tests:
+
+- Current-balance projection always matches the ordered movement ledger after
+  every committed operation.
+- Direct movement update/delete is rejected.
+- Direct duplicate product/item linkage is rejected.
+- Existing supported schema versions migrate with products unlinked and all
+  previous sales intact.
+
+Widget tests:
+
+- Employee navigation and POS expose no stock count, warning, history, or
+  inventory-management route.
+- Manager inventory list renders normal, low, and negative states.
+- Create/edit and movement forms validate whole integers, unit/custom labels,
+  thresholds, and required reasons.
+- Product linking and conflict/archive errors are localized and recoverable.
+- French and representative Arabic/RTL phone/tablet layouts do not overflow.
+
+### Manual phone acceptance
+
+- In airplane mode, create bottle, pack, and custom-unit items with zero and
+  positive balances; restart and verify persistence.
+- Receive one pack of six tracked bottles by adding six bottle units and leaving
+  an optional packaging comment.
+- Withdraw coffee-bean packs with a reason, enter an incorrect movement, and
+  correct it with the opposite movement; inspect the full history.
+- Perform a physical count from both positive and negative theoretical balances.
+- Link a water product with consumption one, sell several units, and verify the
+  automatic movement and balance.
+- Sell beyond theoretical stock and verify the sale succeeds, the manager sees
+  negative status, and an employee sees no inventory information.
+- Cancel an eligible sale and verify the exact quantity returns once.
+- Change/unlink a product after a sale, then cancel it and verify restoration
+  still follows historic consumption.
+- Verify low-stock equality, below-threshold, negative, and no-threshold states.
+- Confirm inventory persists unchanged across cash-session close/open cycles.
+- Test inventory forms/history in portrait and landscape with French and Arabic
+  locale where available.
+
+### Acceptance criteria
+
+- Managers can maintain a continuous offline inventory of whole base units with
+  auditable initial, receipt, withdrawal, count, sale, and cancellation history.
+- Product linkage is optional and one-to-one, with configurable positive whole
+  consumption.
+- Confirmed linked-product sales update stock atomically and never fail merely
+  because theoretical stock is insufficient.
+- Cancellation restores the exact historic consumption without mutating ledger
+  history or double-restocking.
+- Employees cannot access quantities, warnings, history, or management commands.
+- Negative and low-stock states are visible to managers and never require a
+  network connection.
+- Existing products and sales migrate without fabricated inventory history.
+
+### Review focus
+
+- No floating-point or fractional stock representation is introduced.
+- Inventory authorization is enforced below the UI; automatic employee sale
+  consumption does not expose general stock access.
+- Current balance and immutable ledger cannot diverge under failures or direct
+  repository usage.
+- Sale/cancellation transactions remain atomic with inventory movements.
+- Negative stock is intentionally allowed and never accidentally used as a sale
+  guard.
+- Link changes cannot corrupt historic cancellation restoration.
+- Employee UI reveals no manager-only inventory information.
+
+### Ordering and dependencies
+
+Implement after Topic 1 so sale confirmation/cancellation integrates with the
+final cash-session lifecycle and so schema migrations are ordered once. Complete
+it before inventory-aware export, backup/restore, or reporting topics. Start
+from the reviewed, merged Topic 1 result on `codex/inventory-management`.
